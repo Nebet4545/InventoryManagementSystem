@@ -40,6 +40,13 @@ namespace InventoryManagementSystem
             DataGridViewCellStyle dataGridViewCellStyle5 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle6 = new DataGridViewCellStyle();
             dgvStockOut = new DataGridView();
+            ProductId = new DataGridViewTextBoxColumn();
+            ProductCode = new DataGridViewTextBoxColumn();
+            ProductNames = new DataGridViewTextBoxColumn();
+            Price = new DataGridViewTextBoxColumn();
+            Quantity = new DataGridViewTextBoxColumn();
+            LogDate = new DataGridViewTextBoxColumn();
+            StaffName = new DataGridViewTextBoxColumn();
             btnClose = new Button();
             btnStockOut = new Button();
             cmbProductCd = new ComboBox();
@@ -59,13 +66,6 @@ namespace InventoryManagementSystem
             txtStaffName = new TextBox();
             panel1 = new Panel();
             panel2 = new Panel();
-            ProductId = new DataGridViewTextBoxColumn();
-            ProductCode = new DataGridViewTextBoxColumn();
-            ProductNames = new DataGridViewTextBoxColumn();
-            Price = new DataGridViewTextBoxColumn();
-            Quantity = new DataGridViewTextBoxColumn();
-            LogDate = new DataGridViewTextBoxColumn();
-            StaffName = new DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)dgvStockOut).BeginInit();
             panel1.SuspendLayout();
             panel2.SuspendLayout();
@@ -78,8 +78,7 @@ namespace InventoryManagementSystem
             dgvStockOut.AllowUserToResizeRows = false;
             dgvStockOut.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvStockOut.Columns.AddRange(new DataGridViewColumn[] { ProductId, ProductCode, ProductNames, Price, Quantity, LogDate, StaffName });
-            dgvStockOut.Dock = DockStyle.Top;
-            dgvStockOut.Location = new Point(0, 0);
+            dgvStockOut.Location = new Point(2, 4);
             dgvStockOut.Margin = new Padding(2, 3, 2, 3);
             dgvStockOut.MultiSelect = false;
             dgvStockOut.Name = "dgvStockOut";
@@ -87,9 +86,94 @@ namespace InventoryManagementSystem
             dgvStockOut.RowHeadersVisible = false;
             dgvStockOut.RowHeadersWidth = 62;
             dgvStockOut.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvStockOut.Size = new Size(1606, 705);
+            dgvStockOut.Size = new Size(1606, 488);
             dgvStockOut.TabIndex = 4;
             dgvStockOut.TabStop = false;
+            // 
+            // ProductId
+            // 
+            ProductId.DataPropertyName = "ProductId";
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            ProductId.DefaultCellStyle = dataGridViewCellStyle1;
+            ProductId.HeaderText = "商品ID";
+            ProductId.MaxInputLength = 8;
+            ProductId.MinimumWidth = 6;
+            ProductId.Name = "ProductId";
+            ProductId.ReadOnly = true;
+            ProductId.Width = 65;
+            // 
+            // ProductCode
+            // 
+            ProductCode.DataPropertyName = "ProductCode";
+            ProductCode.HeaderText = "商品コード";
+            ProductCode.MaxInputLength = 10;
+            ProductCode.MinimumWidth = 8;
+            ProductCode.Name = "ProductCode";
+            ProductCode.ReadOnly = true;
+            ProductCode.Width = 200;
+            // 
+            // ProductNames
+            // 
+            ProductNames.DataPropertyName = "ProductName";
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            ProductNames.DefaultCellStyle = dataGridViewCellStyle2;
+            ProductNames.HeaderText = "商品名";
+            ProductNames.MaxInputLength = 30;
+            ProductNames.MinimumWidth = 6;
+            ProductNames.Name = "ProductNames";
+            ProductNames.ReadOnly = true;
+            ProductNames.Width = 300;
+            // 
+            // Price
+            // 
+            Price.DataPropertyName = "Price";
+            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleRight;
+            dataGridViewCellStyle3.Format = "N0";
+            Price.DefaultCellStyle = dataGridViewCellStyle3;
+            Price.HeaderText = "単価";
+            Price.MinimumWidth = 6;
+            Price.Name = "Price";
+            Price.ReadOnly = true;
+            Price.Width = 75;
+            // 
+            // Quantity
+            // 
+            Quantity.DataPropertyName = "Quantity";
+            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleRight;
+            dataGridViewCellStyle4.Format = "N0";
+            Quantity.DefaultCellStyle = dataGridViewCellStyle4;
+            Quantity.HeaderText = "出庫数量";
+            Quantity.MaxInputLength = 5;
+            Quantity.MinimumWidth = 6;
+            Quantity.Name = "Quantity";
+            Quantity.ReadOnly = true;
+            Quantity.Width = 80;
+            // 
+            // LogDate
+            // 
+            LogDate.DataPropertyName = "LogDate";
+            dataGridViewCellStyle5.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle5.Format = "d";
+            dataGridViewCellStyle5.NullValue = null;
+            LogDate.DefaultCellStyle = dataGridViewCellStyle5;
+            LogDate.HeaderText = "出庫日";
+            LogDate.MaxInputLength = 30;
+            LogDate.MinimumWidth = 6;
+            LogDate.Name = "LogDate";
+            LogDate.ReadOnly = true;
+            LogDate.Width = 120;
+            // 
+            // StaffName
+            // 
+            StaffName.DataPropertyName = "StaffName";
+            dataGridViewCellStyle6.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            StaffName.DefaultCellStyle = dataGridViewCellStyle6;
+            StaffName.HeaderText = "担当者名";
+            StaffName.MaxInputLength = 30;
+            StaffName.MinimumWidth = 8;
+            StaffName.Name = "StaffName";
+            StaffName.ReadOnly = true;
+            StaffName.Width = 250;
             // 
             // btnClose
             // 
@@ -320,91 +404,6 @@ namespace InventoryManagementSystem
             panel2.Name = "panel2";
             panel2.Size = new Size(1606, 682);
             panel2.TabIndex = 3;
-            // 
-            // ProductId
-            // 
-            ProductId.DataPropertyName = "ProductId";
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            ProductId.DefaultCellStyle = dataGridViewCellStyle1;
-            ProductId.HeaderText = "商品ID";
-            ProductId.MaxInputLength = 8;
-            ProductId.MinimumWidth = 6;
-            ProductId.Name = "ProductId";
-            ProductId.ReadOnly = true;
-            ProductId.Width = 65;
-            // 
-            // ProductCode
-            // 
-            ProductCode.DataPropertyName = "ProductCode";
-            ProductCode.HeaderText = "商品コード";
-            ProductCode.MaxInputLength = 10;
-            ProductCode.MinimumWidth = 8;
-            ProductCode.Name = "ProductCode";
-            ProductCode.ReadOnly = true;
-            ProductCode.Width = 200;
-            // 
-            // ProductNames
-            // 
-            ProductNames.DataPropertyName = "ProductName";
-            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            ProductNames.DefaultCellStyle = dataGridViewCellStyle2;
-            ProductNames.HeaderText = "商品名";
-            ProductNames.MaxInputLength = 30;
-            ProductNames.MinimumWidth = 6;
-            ProductNames.Name = "ProductNames";
-            ProductNames.ReadOnly = true;
-            ProductNames.Width = 300;
-            // 
-            // Price
-            // 
-            Price.DataPropertyName = "Price";
-            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleRight;
-            dataGridViewCellStyle3.Format = "N0";
-            Price.DefaultCellStyle = dataGridViewCellStyle3;
-            Price.HeaderText = "単価";
-            Price.MinimumWidth = 6;
-            Price.Name = "Price";
-            Price.ReadOnly = true;
-            Price.Width = 75;
-            // 
-            // Quantity
-            // 
-            Quantity.DataPropertyName = "Quantity";
-            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleRight;
-            dataGridViewCellStyle4.Format = "N0";
-            Quantity.DefaultCellStyle = dataGridViewCellStyle4;
-            Quantity.HeaderText = "出庫数量";
-            Quantity.MaxInputLength = 5;
-            Quantity.MinimumWidth = 6;
-            Quantity.Name = "Quantity";
-            Quantity.ReadOnly = true;
-            Quantity.Width = 80;
-            // 
-            // LogDate
-            // 
-            LogDate.DataPropertyName = "LogDate";
-            dataGridViewCellStyle5.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle5.Format = "d";
-            dataGridViewCellStyle5.NullValue = null;
-            LogDate.DefaultCellStyle = dataGridViewCellStyle5;
-            LogDate.HeaderText = "出庫日";
-            LogDate.MaxInputLength = 30;
-            LogDate.MinimumWidth = 6;
-            LogDate.Name = "LogDate";
-            LogDate.ReadOnly = true;
-            LogDate.Width = 120;
-            // 
-            // StaffName
-            // 
-            StaffName.DataPropertyName = "StaffName";
-            dataGridViewCellStyle6.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            StaffName.DefaultCellStyle = dataGridViewCellStyle6;
-            StaffName.HeaderText = "担当者名";
-            StaffName.MaxInputLength = 30;
-            StaffName.MinimumWidth = 8;
-            StaffName.Name = "StaffName";
-            StaffName.ReadOnly = true;
-            StaffName.Width = 250;
             // 
             // StockOutForm
             // 
