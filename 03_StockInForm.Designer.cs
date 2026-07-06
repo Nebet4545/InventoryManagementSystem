@@ -124,7 +124,7 @@ namespace InventoryManagementSystem
             btnClose.Margin = new Padding(2, 3, 2, 3);
             btnClose.Name = "btnClose";
             btnClose.Size = new Size(153, 65);
-            btnClose.TabIndex = 1;
+            btnClose.TabIndex = 6;
             btnClose.Text = "閉じる";
             btnClose.UseVisualStyleBackColor = true;
             btnClose.Click += btnClose_Click;
@@ -133,7 +133,7 @@ namespace InventoryManagementSystem
             // 
             txtCurrentStock.Anchor = AnchorStyles.None;
             txtCurrentStock.Font = new System.Drawing.Font("MS UI Gothic", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 128);
-            txtCurrentStock.Location = new Point(726, 71);
+            txtCurrentStock.Location = new Point(726, 111);
             txtCurrentStock.Margin = new Padding(4, 5, 4, 5);
             txtCurrentStock.MaxLength = 10;
             txtCurrentStock.Name = "txtCurrentStock";
@@ -146,7 +146,7 @@ namespace InventoryManagementSystem
             // 
             label6.AutoSize = true;
             label6.Font = new System.Drawing.Font("MS UI Gothic", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 128);
-            label6.Location = new Point(619, 112);
+            label6.Location = new Point(619, 111);
             label6.Margin = new Padding(4, 0, 4, 0);
             label6.Name = "label6";
             label6.Size = new Size(100, 25);
@@ -221,7 +221,7 @@ namespace InventoryManagementSystem
             // txtProductName
             // 
             txtProductName.Font = new System.Drawing.Font("MS UI Gothic", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 128);
-            txtProductName.Location = new Point(726, 112);
+            txtProductName.Location = new Point(726, 71);
             txtProductName.Margin = new Padding(4, 5, 4, 5);
             txtProductName.MaxLength = 30;
             txtProductName.Name = "txtProductName";
