@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-#region 履歴に関する処理をまとめるクラス
+#region 履歴に関する処理(sql)をまとめるクラス
 
 namespace InventoryManagementSystem
 {
@@ -18,7 +18,7 @@ namespace InventoryManagementSystem
         string? mainConn = Class_DbConfig.ConnectionString;
 
         /// <summary>
-        /// 履歴を管理するデータを取得する関数
+        /// 商品の履歴を管理するデータを取得する関数
         /// </summary>
         public List<Class_Log> StoreStockLogsSet()
         {
@@ -37,7 +37,10 @@ namespace InventoryManagementSystem
                     //sql文記述
                     {
                         string sql =
-                            @"Select * FROM ""StockLogs""
+                            @"SELECT
+                            ""ProductId"",""ProductCode"",""ProductName"",""Price"",
+                            ""Category"",""Quantity"",""LogDate"",""StaffName""
+                            FROM ""StockLogs""
                             ORDER BY ""LogDate""";
                         sbsql.AppendLine(sql);
                     }

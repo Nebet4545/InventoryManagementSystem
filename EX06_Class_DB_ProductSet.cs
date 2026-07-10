@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+#region 商品のデータを取得する処理(sql)をまとめたクラス
+
 namespace InventoryManagementSystem
 {
     public class Class_Database_Product
@@ -135,3 +137,4 @@ namespace InventoryManagementSystem
         }
     }
 }
+#endregion

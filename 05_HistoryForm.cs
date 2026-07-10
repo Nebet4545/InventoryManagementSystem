@@ -131,7 +131,11 @@ namespace InventoryManagementSystem
                                     ProductName = reader["ProductName"].ToString(), //商品名
                                     Category = reader["Category"].ToString(), //カテゴリー
                                     Quantity = Convert.ToInt32(reader["Quantity"]), //入出庫数量
-                                    StaffName = reader["StaffName"].ToString() //担当者名
+                                    StaffName = reader["StaffName"].ToString(), //担当者名
+
+                                    //※注意：クラス側のrequired制約を満たすためのダミー値です。
+                                    //このデータベース処理ではPrice(価格)は不要なためエラー回避のために0を代入しています。
+                                    Price = 0
                                 });
                             }
                             //表に取得した値を表示する
@@ -297,7 +301,11 @@ namespace InventoryManagementSystem
                                     ProductName = reader["ProductName"].ToString(), //商品名
                                     Category = reader["Category"].ToString(), //区分
                                     Quantity = Convert.ToInt32(reader["Quantity"]), //入庫・出庫数量
-                                    StaffName = reader["StaffName"].ToString() //担当者名
+                                    StaffName = reader["StaffName"].ToString(), //担当者名
+
+                                    //※注意：クラス側のrequired制約を満たすためのダミー値です。
+                                    //このデータベース処理ではPrice(価格)は不要なためエラー回避のために0を代入しています。
+                                    Price = 0
                                 });
                             }
 

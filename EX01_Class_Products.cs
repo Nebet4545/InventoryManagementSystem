@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace InventoryManagementSystem
 {
     /// <summary>
-    /// 商品クラス作成
+    /// 商品データを扱うクラス
     /// </summary>
     /// 
     public class Class_Product
@@ -19,18 +19,12 @@ namespace InventoryManagementSystem
         //商品名
         public required string ProductName { get; set; }
         //商品単価
-        public int Price { get; set; }
+        public required int Price { get; set; }
         //登録日
         public DateTime CreateDate { get; set; }
         //担当者
         public required string StaffName { get; set; }
 
-        public Class_Product()
-        {
-            ProductCode = "";
-            ProductName = "";
-            StaffName = "";
-        }
     }
 }
 
