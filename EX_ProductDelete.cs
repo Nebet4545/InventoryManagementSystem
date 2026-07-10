@@ -229,6 +229,9 @@ namespace InventoryManagementSystem
                         {
                             try
                             {
+                                //トランザクションを紐づけ
+                                cmd.Transaction = tran;
+
                                 //商品コードを削除する(商品IDで指定)
                                 cmd.Parameters.AddWithValue("@ProductId", foundId);
                                 cmd.ExecuteNonQuery();

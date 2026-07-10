@@ -185,8 +185,6 @@ namespace InventoryManagementSystem
                 txtStockOut.Focus();
                 return;
             }
-            //出庫数を正の値から負の値へ変換する
-            quan = quan * -1;
 
             //在庫数が0未満になる場合は出庫できないようにする
             //検索した商品コードの現在の在庫数を調べる
@@ -195,7 +193,7 @@ namespace InventoryManagementSystem
                 .Sum(p => p.ProductStock);
 
             //出庫数が在庫数を越えている場合の処理
-            if (CurrentStock + quan < 0)
+            if (CurrentStock - quan < 0)
             {
                 MessageBox.Show("在庫数量を越えた出庫はできません。", "確認",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -240,161 +238,79 @@ namespace InventoryManagementSystem
             txtStockOut.BackColor = SystemColors.Window;
             txtStaffName.BackColor = SystemColors.Window;
 
-            //データベースに接続
-            using (var conn = new NpgsqlConnection(mainConn))
+            //商品の出庫処理を行う(クラス呼び出し)
+            var repo = new Class_DatabaseStockLogs();
+            bool isSuccces = repo.SaveToDatabase(ProductId,ProductCode,ProductName,foundProduct.Price,Category,quan,OutDate,staff,
+                out string errMs);
+
+            //データベース処理が正常に行われなかった場合の処理
+
+            if (!isSuccces)
             {
-                try
-                {
-                    //データベースを開く
-                    conn.Open();
-                    //トランザクション開始
-                    using (NpgsqlTransaction tran = conn.BeginTransaction())
-                    {
-                        //sql文記述用1(ログ：StockLogs)
-                        var sbsqlLog = new StringBuilder();
-                        //sql記述用2(在庫：Inventory)
-                        var sbsqlInventory = new StringBuilder();
-                        {
-                            string sql1 =
-                                    @"INSERT INTO ""StockLogs""
-                                    (""ProductId"",""ProductCode"",""ProductName"",""Price"",""Category"",
-                                     ""Quantity"",""LogDate"",""StaffName"")
-                                    VALUES
-                                    (@ProductId,@ProductCode,@ProductName,@Price,@Category,
-                                    @Quantity,@LogDate,@StaffName)";
-                            string sql2 =
-                                @"UPDATE ""Inventory""
-                                        SET ""ProductStock"" = ""ProductStock"" + @Quantity
-                                        WHERE ""ProductId"" = @ProductId";
-                            sbsqlLog.AppendLine(sql1);
-                            sbsqlInventory.AppendLine(sql2);
-                        }
-
-                        //sql文実行(StockLogs)
-                        using (var cmd = new NpgsqlCommand(sbsqlLog.ToString(), conn))
-                        {
-                            try
-                            {
-                                //各項目をインサート(出庫)
-                                cmd.Parameters.AddWithValue("@ProductId", ProductId); //商品ID
-                                cmd.Parameters.AddWithValue("@ProductCode", ProductCode); //商品コード
-                                cmd.Parameters.AddWithValue("@ProductName", ProductName); //商品名
-                                cmd.Parameters.AddWithValue("@Price", foundProduct.Price); //単価
-                                cmd.Parameters.AddWithValue("@Category", Category); //区分
-                                cmd.Parameters.AddWithValue("@Quantity", quan); //出庫数
-                                cmd.Parameters.AddWithValue("@LogDate", OutDate); //出庫日
-                                cmd.Parameters.AddWithValue("@StaffName", staff); //担当者
-
-                                //StockLogsのsqlコマンドを終了する
-                                cmd.ExecuteNonQuery();
-
-                                //sql文実行(Inventory)
-                                using (var cmd2 = new NpgsqlCommand(sbsqlInventory.ToString(), conn))
-                                {
-                                    //トランザクションを紐づけ
-                                    cmd2.Transaction = tran;
-
-                                    //データベースを更新する
-                                    cmd2.Parameters.AddWithValue("@Quantity", quan); //在庫数
-                                    cmd2.Parameters.AddWithValue("@ProductId", ProductId); //商品ID
-
-                                    //Inventoryのsqlコマンドを終了する
-                                    cmd2.ExecuteNonQuery();
-                                }
-                                tran.Commit();
-
-                                //DataStoreを更新&表に反映
-                                DataSet();
-                                //在庫数を更新する
-                                UpDateStock();
-                                //テキストボックス初期化
-                                txtReset();
-
-                                //出庫メッセージを表示
-                                MessageBox.Show("出庫しました。", "確認",
-                                    MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            }
-                            catch (Exception ex2)
-                            {
-                                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
-                                tran.Rollback();
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex1)
-                {
-                    MessageBox.Show($"エラーメッセージ：{ex1.Message}");
-                }
+                //メッセージを表示する
+                MessageBox.Show(errMs);
+                //テキストボックス初期化
+                txtReset();
+                return;
             }
+
+            //DataStoreを更新&表に反映
+            DataSet();
+            dgvStockOut.DataSource = Class_DataStore.StockLogs;
+            //在庫数を更新する
+            UpDateStock();
+            //テキストボックス初期化
+            txtReset();
+
+            //出庫メッセージを表示
+            MessageBox.Show("出庫しました。", "確認",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         /// <summary>
-        /// 初期データの設定
+        /// データベースから表に表示するデータを取得する関数
         /// </summary>
         private void DataSet()
         {
-            //DataStoreを初期化する
-            Class_DataStore.StockLogs.Clear();
-
-            //sql文記述用
-            var sbsql = new StringBuilder();
+            //データベースの接続情報が読み込めなかった場合の処理
+            if (string.IsNullOrEmpty(mainConn))
             {
-                string sql =
-                    @"SELECT ""ProductId"",""ProductCode"",""ProductName"",""Price"",
-                            ""Quantity"",""LogDate"",""StaffName""
-                            FROM ""StockLogs""
-                            ORDER BY ""ProductId""";
-                sbsql.AppendLine(sql);
+                //メッセージを表示する
+                MessageBox.Show($"データベースの情報を取得できませんでした。", "確認",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
             }
-
-            //データベースに接続
-            using (var conn = new NpgsqlConnection(mainConn))
+            try
             {
-                try
+                //商品データをクラスから取得する
+                var allLog = Class_ProductsDisplaySet.DataList(mainConn);
+
+                //DataStoreを初期化する
+                Class_DataStore.StockLogs.Clear();
+
+
+                //取得した値をDataStoreに追加する
+                foreach (var list in allLog)
                 {
-                    //データベースを開く
-                    conn.Open();
-                    //sql文実行
-                    using (var cmd = new NpgsqlCommand(sbsql.ToString(), conn))
-                    {
-                        //データベース読み込み
-                        using (NpgsqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                //DataStoreに値をセット
-                                Class_DataStore.StockLogs.Add(new Class_Log
-                                {
-                                    ProductId = Convert.ToInt32(reader["ProductId"]), //商品ID
-                                    ProductCode = Convert.ToString(reader["ProductCode"]), //商品コード
-                                    ProductName = reader["ProductName"].ToString(), //商品名
-                                    Price = Convert.ToInt32(reader["Price"]), //単価
-                                    Quantity = Convert.ToInt32(reader["Quantity"]), //出庫数
-                                    LogDate = reader.GetFieldValue<DateOnly>(reader.GetOrdinal("LogDate")).ToDateTime(TimeOnly.MinValue), //出庫日
-                                    StaffName = reader["StaffName"].ToString() //担当者
-                                });
-                            }
-                            //表に負の入庫(出庫)数だけを表示
-                            dgvStockOut.DataSource = Class_DataStore.StockLogs
-                                .Where(s => s.Quantity < 0)
-                                .Select(s => new
-                                {
-                                    s.ProductId, //商品ID
-                                    s.ProductCode, //商品コード
-                                    s.ProductName, //商品名
-                                    s.Price, //単価
-                                    Quantity = Math.Abs(s.Quantity), //出庫数(絶対値変換したもの)
-                                    s.LogDate, //出庫日
-                                    s.StaffName //担当者
-                                }).ToList();
-                        }
-                    }
+                    Class_DataStore.StockLogs.Add(list);
                 }
-                catch (Exception ex)
+                //出庫数だけを抽出し、絶対値に変換して表示する
+                dgvStockOut.DataSource = Class_DataStore.StockLogs
+                .Where(s => s.Quantity < 0)
+                .Select(s => new
                 {
-                    MessageBox.Show($"エラーメッセージ：{ex.Message}");
-                }
+                    s.ProductId,
+                    s.ProductCode,
+                    s.ProductName,
+                    s.Price,
+                    Quantity = Math.Abs(s.Quantity),
+                    s.LogDate,
+                    s.StaffName
+                }).ToList();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex.Message}");
             }
         }
         /// <summary>
@@ -402,47 +318,26 @@ namespace InventoryManagementSystem
         /// </summary>
         private void UpDateStock()
         {
-            //DataStoreを空にする
-            Class_DataStore.Inventory.Clear();
-
-            //sql文記述用
-            var sbsql = new StringBuilder();
+            try
             {
-                string sql =
-                    @"SELECT * FROM ""Inventory""";
-                sbsql.AppendLine(sql);
+                //DataStore(Inventory)を初期化する
+                Class_DataStore.Inventory.Clear();
+
+                //商品の在庫数の取得を行う（クラス呼び出し）
+                var Inventory = new Class_DatabaseStockLogs();
+                var list = Inventory.UpDateStock();
+
+                //DataStoreに在庫データを追加する
+                foreach (var l in list)
+                {
+                    Class_DataStore.Inventory.Add(l);
+                }
             }
-
-            //データベースに接続する
-            using (var conn = new NpgsqlConnection(mainConn))
+            catch (Exception ex)
             {
-                try
-                {
-                    //データベースを開く
-                    conn.Open();
-                    //sql文を実行する
-                    using (var cmd = new NpgsqlCommand(sbsql.ToString(), conn))
-                    {
-                        //データベースを読み込む
-                        using (var reader = cmd.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                //各項目をDataStoreに追加する
-                                Class_DataStore.Inventory.Add(new Class_Inventory
-                                {
-                                    ProductId = Convert.ToInt32(reader["ProductId"]), //商品ID
-                                    ProductStock = Convert.ToInt32(reader["ProductStock"]) //在庫数
-                                });
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"エラーメッセージ：{ex.Message}");
-                }
+                //呼び出し先で発生したエラーを取得する
+                MessageBox.Show($"エラーメッセージ：{ex.Message}");
             }
         }
-    }
+}
 }

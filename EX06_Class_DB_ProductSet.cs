@@ -38,7 +38,10 @@ namespace InventoryManagementSystem
                     //sql文記述
                     {
                         string sql =
-                            @"SELECT * FROM ""Products""";
+                            @"SELECT
+                            ""ProductId"",""ProductCode"",""ProductName"",
+                            ""Price"",""CreateDate"",""StaffName"" 
+                            FROM ""Products""";
                         sbsql.Append(sql);
                     }
 
