@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace InventoryManagementSystem
 {
     /// <summary>
-    /// 在庫を管理するクラス
+    /// 商品の在庫データを管理するクラス
     /// </summary>
     public class Class_Inventory
     {

@@ -22,10 +22,5 @@ namespace InventoryManagementSystem
         //在庫数
         public int ProductStock { get; set; }
 
-        public Class_ProductDisplay()
-        {
-            ProductCode = "";
-            ProductName = "";
-        }
     }
 }

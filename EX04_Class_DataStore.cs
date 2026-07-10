@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace InventoryManagementSystem
 {
-    //全画面で共有するデータの作成
+    //各クラス毎にまとめるデータを扱うクラス
     public static class Class_DataStore
     {
         //商品マスタ【商品を管理するデータ】

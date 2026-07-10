@@ -6,11 +6,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+#region 画面に表示するための処理を行い、呼び出し元に処理後のリストを返すクラス
+
 namespace InventoryManagementSystem
 {
-    /// <summary>
-    /// 商品マスタ・画面表示用
-    /// </summary>
     public class Class_ProductsDisplaySet()
     {
         /// <summary>
@@ -81,7 +80,7 @@ namespace InventoryManagementSystem
         /// </summary>
         public static List<Class_Log> DataList(string mainConn)
         {
-            //返す用の空のリストを宣言する
+            //呼び出し元に返す空のリストを宣言する
             var Logs = new List<Class_Log>();
             //sql文記述用
             var sbsql = new StringBuilder();
@@ -119,7 +118,11 @@ namespace InventoryManagementSystem
                                     Price = Convert.ToInt32(reader["Price"]), //単価
                                     Quantity = Convert.ToInt32(reader["Quantity"]), //入庫数
                                     LogDate = reader.GetFieldValue<DateOnly>(reader.GetOrdinal("LogDate")).ToDateTime(TimeOnly.MinValue), //入庫日
-                                    StaffName = Convert.ToString(reader["StaffName"]) //担当者
+                                    StaffName = Convert.ToString(reader["StaffName"]), //担当者
+
+                                    //※注意：クラス側のrequired制約を満たすためのダミー値です。
+                                    //このデータベース処理ではCategory(区分)は不要なためエラー回避のために""を代入しています。
+                                    Category = ""
                                 });
                             }
                         }
@@ -136,3 +139,4 @@ namespace InventoryManagementSystem
 
     }
 }
+#endregion
