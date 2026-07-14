@@ -14,11 +14,6 @@ namespace InventoryManagementSystem
 {
     public partial class HistoryForm : Form
     {
-        /// <summary>
-        /// 接続情報
-        /// </summary>
-        string? mainConn = Class_DbConfig.ConnectionString;
-
         public HistoryForm()
         {
             InitializeComponent();
@@ -44,7 +39,7 @@ namespace InventoryManagementSystem
             //表に自動で列が増えないように制限する
             dgvHistory.AutoGenerateColumns = false;
             //表に初期データをセット
-            DataSet();
+            ToMonthDataSet();
         }
         /// <summary>
         /// コンボボックス初期設定の関数
@@ -72,81 +67,36 @@ namespace InventoryManagementSystem
             txtStaffName.Text = string.Empty;
         }
         /// <summary>
-        /// データベースから初期データを取得する関数
+        /// 入出庫履歴の初期データ(当月分)を取得する関数
         /// </summary>
-        private void DataSet()
+        private void ToMonthDataSet()
         {
-            //DataStoreを初期化する
-            Class_DataStore.StockLogs.Clear();
-
-            //当月の初日を取得(初期状態を当月分にするため)
-            DateTime StartDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
-            //当月の最終日を取得
-            DateTime EndDate = StartDate.AddMonths(1).AddDays(-1);
-
-            //sql文記述用
-            var sbsql = new StringBuilder();
+            try
             {
-                string sql =
-                    @"SELECT 
-                    s.""LogDate"",p.""ProductCode"",s.""ProductName"",
-                    s.""Category"",s.""Quantity"",s.""StaffName""
-                    FROM ""StockLogs"" s
-                    INNER JOIN ""Products"" p
-                    ON s.""ProductId"" = p.""ProductId""
-                    WHERE s.""LogDate"" BETWEEN @StartDay AND @EndDay
-                    AND s.""Quantity"" <> 0
-                    ORDER BY s.""LogDate""";
-                sbsql.Append(sql);
+                //DataStore(StockLogs)をを初期化する
+                Class_DataStore.StockLogs.Clear();
+                //商品の当月分の入出庫履歴データを取得する(クラス呼び出し)
+                var repo = new Class_DatabaseStockLogs();
+                var list = repo.HistoryDataset();
+
+                //DataStoreに当月分の入出庫履歴データを追加する
+                foreach (var l in list)
+                {
+                    Class_DataStore.StockLogs.Add(l);
+                }
+                //取得したデータを表示する
+                dgvHistory.DataSource = null; //表の初期化
+                dgvHistory.DataSource = Class_DataStore.StockLogs;
             }
-
-            //データベースに接続
-            using (var conn = new NpgsqlConnection(mainConn))
+            //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
+            catch (InvalidOperationException ex1)
             {
-                try
-                {
-                    //データベースを開く
-                    conn.Open();
-                    //空のsqlコマンドを宣言
-                    using (var cmd = new NpgsqlCommand())
-                    {
-                        //表示する期間を代入
-                        cmd.Parameters.AddWithValue("@StartDay", StartDate); //当月初日
-                        cmd.Parameters.AddWithValue("@EndDay", EndDate); //当月末日
-
-                        //sql文をコマンドに入れる
-                        cmd.CommandText = sbsql.ToString();
-                        cmd.Connection = conn;
-
-                        //データベース読み込み
-                        using (var reader = cmd.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                //各項目をDataStoreに追加する
-                                Class_DataStore.StockLogs.Add(new Class_Log
-                                {
-                                    LogDate = reader.GetFieldValue<DateOnly>(reader.GetOrdinal("LogDate")).ToDateTime(TimeOnly.MinValue), //入出庫日
-                                    ProductCode = reader["ProductCode"].ToString(), //商品コード
-                                    ProductName = reader["ProductName"].ToString(), //商品名
-                                    Category = reader["Category"].ToString(), //カテゴリー
-                                    Quantity = Convert.ToInt32(reader["Quantity"]), //入出庫数量
-                                    StaffName = reader["StaffName"].ToString(), //担当者名
-
-                                    //※注意：クラス側のrequired制約を満たすためのダミー値です。
-                                    //このデータベース処理ではPrice(価格)は不要なためエラー回避のために0を代入しています。
-                                    Price = 0
-                                });
-                            }
-                            //表に取得した値を表示する
-                            dgvHistory.DataSource = Class_DataStore.StockLogs;
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"エラーメッセージ：{ex.Message}");
-                }
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+            }
+            //呼び出し先で発生したエラーを取得する（その他のエラー）
+            catch (Exception ex2)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
             }
         }
         /// <summary>
@@ -216,126 +166,70 @@ namespace InventoryManagementSystem
         /// <param name="e"></param>
         private void btnSearch_Click(object sender, EventArgs e)
         {
-            //DataStoreを空にする
-            Class_DataStore.StockLogs.Clear();
+            //検索期間を指定する
+            DateTime? StartDate = null; //検索開始日
+            DateTime? EndDate = null;   //検索終了日
 
             string pCode = cmbProductCode.Text.Trim(); //商品コード
             string staffName = txtStaffName.Text.Trim(); //担当者名
 
-            //sql文記述
-            var sbsql = new StringBuilder();
+            //ラジオボタンの状況に合わせて検索する期間を指定する
+            //期間指定がされている場合の処理
+            if (RadioBetween.Checked == true)
             {
-                string sql =
-                    @"SELECT s.""LogDate"",p.""ProductCode"",s.""ProductName"",
-                    s.""Category"",s.""Quantity"",s.""StaffName""
-                    FROM ""StockLogs"" s
-                    INNER JOIN ""Products"" p
-                    ON s.""ProductId"" = p.""ProductId""
-                    WHERE 1 = 1
-                    AND s.""Quantity"" <> 0 ";
-                sbsql.AppendLine(sql);
+                //各デートタイムピッカーに指定されている期間の履歴を表示
+                StartDate = dtpStartDate.Value; //検索開始日
+                EndDate = dtpEndDate.Value;     //検索終了日
+            }
+            //当月分の履歴を表示するラジオボタンがチェックされている場合の処理
+            if (RadioThisMonth.Checked == true)
+            {
+                //当月初日の値を取得する
+                StartDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+                //当月末尾の値を取得する
+                EndDate = StartDate.Value.AddMonths(1).AddDays(-1);
             }
 
-            //データベースに接続
-            using (var conn = new NpgsqlConnection(mainConn))
+            //データベースから検索条件に合わせた入出庫履歴のデータを取得する(クラス呼び出し)
+            var repo = new Class_DatabaseStockLogs();
+            //クラスから返ってきたリストを受け取るリスト
+            var SelectedHistoryList = new List<Class_Log>();
+            try
             {
-                try
-                {
-                    //データベースを開く
-                    conn.Open();
-                    //空のsqlコマンドを作る
-                    using (var cmd = new NpgsqlCommand())
-                    {
-                        //商品コードが入力されている場合の処理
-                        if (!string.IsNullOrWhiteSpace(pCode))
-                        {
-                            //商品コードが一致した商品の履歴を表示
-                            sbsql.AppendLine("AND p.\"ProductCode\" = @ProductCode");
-                            cmd.Parameters.AddWithValue("ProductCode", pCode);
-                        }
-                        //担当者が入力されている場合の処理
-                        if (!string.IsNullOrWhiteSpace(staffName))
-                        {
-                            //担当者名が一致(部分)している商品の履歴を表示
-                            sbsql.AppendLine("AND s.\"StaffName\" LIKE @StaffName");
-                            cmd.Parameters.AddWithValue("StaffName", $"%{staffName}%");
-                        }
-                        //期間指定がされている場合の処理
-                        if (RadioBetween.Checked == true)
-                        {
-                            //指定されている期間の履歴を表示
-                            sbsql.AppendLine("AND \"LogDate\" BETWEEN @StartDate AND @EndDate");
-                            cmd.Parameters.AddWithValue("@StartDate", dtpStartDate.Value);
-                            cmd.Parameters.AddWithValue("@EndDate", dtpEndDate.Value);
-                        }
-                        //当月分の履歴を表示するラジオボタンがチェックされている場合の処理
-                        if (RadioThisMonth.Checked == true)
-                        {
-                            //当月初日の値を取得する
-                            DateTime StartDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
-                            //当月末尾の値を取得する
-                            DateTime EndDate = StartDate.AddMonths(1).AddDays(-1);
+               SelectedHistoryList = repo.HistoryLogSearch(pCode, staffName, StartDate, EndDate);
+            }
+            //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
+            catch (InvalidOperationException ex1)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                return;
+            }
+            //呼び出し先で発生したエラーを取得する（その他のエラー）
+            catch (Exception ex2)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                return;
+            }
 
-                            //期間を当月分に設定する
-                            sbsql.AppendLine("AND \"LogDate\" BETWEEN @StartDate AND @EndDate");
-                            cmd.Parameters.AddWithValue("@StartDate", StartDate);
-                            cmd.Parameters.AddWithValue("@EndDate", EndDate);
-                        }
-                        //入庫日・出庫日の昇順で取得する
-                        sbsql.AppendLine("ORDER BY s.\"LogDate\"");
-
-                        //空のコマンドに代入
-                        cmd.CommandText = sbsql.ToString();
-                        cmd.Connection = conn;
-
-                        //データベースを読み込む
-                        using (var reader = cmd.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                //データベースから取得した値をセット
-                                Class_DataStore.StockLogs.Add(new Class_Log
-                                {
-                                    LogDate = reader.GetFieldValue<DateOnly>(reader.GetOrdinal("LogDate")).ToDateTime(TimeOnly.MinValue), //入庫。出庫日
-                                    ProductCode = reader["ProductCode"].ToString(), //商品コード
-                                    ProductName = reader["ProductName"].ToString(), //商品名
-                                    Category = reader["Category"].ToString(), //区分
-                                    Quantity = Convert.ToInt32(reader["Quantity"]), //入庫・出庫数量
-                                    StaffName = reader["StaffName"].ToString(), //担当者名
-
-                                    //※注意：クラス側のrequired制約を満たすためのダミー値です。
-                                    //このデータベース処理ではPrice(価格)は不要なためエラー回避のために0を代入しています。
-                                    Price = 0
-                                });
-                            }
-
-                            //入庫のみ表示が選択された場合
-                            if (RadioStockIn.Checked == true)
-                            {
-                                //表に入庫数が1以上の履歴だけを表示する
-                                dgvHistory.DataSource = Class_DataStore.StockLogs
-                                    .Where(s => s.Quantity >= 1).ToList();
-                            }
-                            //出庫のみが選択された場合
-                            else if (RadioStockOut.Checked == true)
-                            {
-                                //表に出庫数が0未満(マイナス)の履歴だけを表示する
-                                dgvHistory.DataSource = Class_DataStore.StockLogs
-                                    .Where(s => s.Quantity < 0).ToList();
-                            }
-                            //入庫・出庫が選択された場合
-                            else
-                            {
-                                //表に履歴を表示する
-                                dgvHistory.DataSource = Class_DataStore.StockLogs;
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"エラーメッセージ：{ex.Message}");
-                }
+            //入庫のみ表示が選択された場合
+            if (RadioStockIn.Checked == true)
+            {
+                //表に入庫数が1以上の履歴だけを表示する
+                dgvHistory.DataSource = SelectedHistoryList
+                    .Where(s => s.Quantity >= 1).ToList();
+            }
+            //出庫のみが選択された場合
+            else if (RadioStockOut.Checked == true)
+            {
+                //表に出庫数が0未満(マイナス)の履歴だけを表示する
+                dgvHistory.DataSource = SelectedHistoryList
+                    .Where(s => s.Quantity < 0).ToList();
+            }
+            //入庫・出庫が選択された場合
+            else
+            {
+                //表に履歴を表示する
+                dgvHistory.DataSource = SelectedHistoryList;
             }
         }
 
@@ -367,3 +261,4 @@ namespace InventoryManagementSystem
         }
     }
 }
+    

@@ -17,11 +17,6 @@ namespace InventoryManagementSystem
 {
     public partial class StockInForm : Form
     {
-        /// <summary>
-        /// 接続情報
-        /// </summary>
-        /// 
-        string? mainConn = Class_DbConfig.ConnectionString;
 
         public StockInForm()
         {
@@ -227,18 +222,21 @@ namespace InventoryManagementSystem
             int ProductId = foundProduct.ProductId; //商品ID
 
             //商品の入庫処理を行う(クラス呼び出し)
-            var repo = new Class_DatabaseStockLogs();            
-            bool isSucces = repo.SaveToDatabase(ProductId,pCode,foundProduct.ProductName,foundProduct.Price,Category,quan,InDate,staff,
-                out string errMs);
-
-            ////データベース処理が正常に行われなかった場合の処理
-            if (!isSucces)
+            var repo = new Class_DatabaseStockLogs(); 
+            try
             {
-                //エラーメッセージを表示する
-                MessageBox.Show(errMs);
-                //テキストボックス初期化
-                txtReset();
-                return;
+                repo.SaveToDatabase(ProductId, pCode, foundProduct.ProductName, foundProduct.Price, Category, quan, InDate, staff);
+
+            }
+            //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
+            catch (InvalidOperationException ex1)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+            }
+            //呼び出し先で発生したエラーを取得する（その他のエラー）
+            catch (Exception ex2)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
             }
 
             //DataStore(StockLogs)の更新＆表の更新
@@ -258,36 +256,35 @@ namespace InventoryManagementSystem
         /// </summary>
         private void DataSet()
         {
-            //データベースの接続情報が読み込めなかった場合の処理
-            if (string.IsNullOrEmpty(mainConn))
-            {
-                //メッセージを表示する
-                MessageBox.Show($"データベースの情報を取得できませんでした。", "確認",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
             try
             {  
                 //商品データをクラスから取得する
-                var allLog = Class_ProductsDisplaySet.DataList(mainConn);
+                var allLog = new Class_ProductsDisplaySet();
+                var list = allLog.DataList();
 
                 //DataStoreを初期化する
                 Class_DataStore.StockLogs.Clear();
 
 
                 //取得した値をDataStoreに追加する
-                foreach (var list in allLog)
+                foreach (var l in list)
                 {
-                    Class_DataStore.StockLogs.Add(list);
+                    Class_DataStore.StockLogs.Add(l);
                 }
 
                 //表に入庫数だけを抽出し、表示する
                 dgvStockIn.DataSource = Class_DataStore.StockLogs
                 .Where(s => s.Quantity > 0).ToList();
             }
-            catch (Exception ex)
+            //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
+            catch (InvalidOperationException ex1)
             {
-                MessageBox.Show($"エラーメッセージ：{ex.Message}");
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+            }
+            //呼び出し先で発生したエラーを取得する（その他のエラー）
+            catch (Exception ex2)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
             }
         }
         /// <summary>
@@ -309,10 +306,15 @@ namespace InventoryManagementSystem
                     Class_DataStore.Inventory.Add(l);
                 }
             }
-            catch (Exception ex)
+            //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
+            catch (InvalidOperationException ex1)
             {
-                //呼び出し先で発生したエラーを取得する
-                MessageBox.Show($"エラーメッセージ：{ex.Message}");
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+            }
+            //呼び出し先で発生したエラーを取得する（その他のエラー）
+            catch (Exception ex2)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
             }
         }
     }

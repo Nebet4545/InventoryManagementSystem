@@ -15,7 +15,26 @@ namespace InventoryManagementSystem
         /// <summary>
         /// 接続情報
         /// </summary>
-        string? mainConn = Class_DbConfig.ConnectionString;
+        private readonly string mainConn = default!;
+
+        /// <summary>
+        /// 接続情報を取得するコンストラクタ
+        /// </summary>
+        /// <exception cref="InvalidOperationException"></exception>
+        public Class_Database_Product()
+        {
+            //接続文字列を取得する
+            var ConnStr = Class_DbConfig.ConnectionString;
+
+            //接続文字列がNullまたは""の場合エラーメッセージを呼び出し元にスローする
+            if (string.IsNullOrEmpty(ConnStr))
+            {
+                throw new InvalidOperationException("接続文字列がありません。");
+            }
+
+            //接続情報を取得する
+            mainConn = ConnStr;
+        }
 
         /// <summary>
         /// 商品マスタ(全商品のデータ)を取得する関数
@@ -69,9 +88,10 @@ namespace InventoryManagementSystem
                         }
                     }
                 }
-                catch (Exception ex)
+                //エラーが出た場合処理を中断して呼び出し元に内容をスローする
+                catch (Exception)
                 {
-                    MessageBox.Show($"エラーメッセージ：{ex.Message}");
+                    throw;
                 }
             }
             return ProductList;
@@ -128,9 +148,10 @@ namespace InventoryManagementSystem
                         }
                     }
                 }
-                catch (Exception ex)
+                //エラーが出た場合処理を中断して呼び出し元に内容をスローする
+                catch (Exception)
                 {
-                    MessageBox.Show($"エラーメッセージ：{ex.Message}");
+                    throw;
                 }
             }
             return InventoryList;

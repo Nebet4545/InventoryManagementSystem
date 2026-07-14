@@ -6,19 +6,16 @@ using System.Data;
 using System.Drawing;
 using System.IO.Pipes;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 using System.Windows.Forms;
 using static InventoryManagementSystem.Main;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace InventoryManagementSystem
 {
     public partial class StockOutForm : Form
     {
-        /// <summary>
-        /// 接続情報
-        /// </summary>
-        /// 
-        string? mainConn = Class_DbConfig.ConnectionString;
         public StockOutForm()
         {
             InitializeComponent();
@@ -238,25 +235,26 @@ namespace InventoryManagementSystem
             txtStockOut.BackColor = SystemColors.Window;
             txtStaffName.BackColor = SystemColors.Window;
 
-            //商品の出庫処理を行う(クラス呼び出し)
+            //商品の入庫処理を行う(クラス呼び出し)
             var repo = new Class_DatabaseStockLogs();
-            bool isSuccces = repo.SaveToDatabase(ProductId,ProductCode,ProductName,foundProduct.Price,Category,quan,OutDate,staff,
-                out string errMs);
-
-            //データベース処理が正常に行われなかった場合の処理
-
-            if (!isSuccces)
+            try
             {
-                //メッセージを表示する
-                MessageBox.Show(errMs);
-                //テキストボックス初期化
-                txtReset();
-                return;
+                repo.SaveToDatabase(ProductId, ProductCode, foundProduct.ProductName, foundProduct.Price, Category, quan, OutDate, staff);
+
+            }
+            //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
+            catch (InvalidOperationException ex1)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+            }
+            //呼び出し先で発生したエラーを取得する（その他のエラー）
+            catch (Exception ex2)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
             }
 
             //DataStoreを更新&表に反映
             DataSet();
-            dgvStockOut.DataSource = Class_DataStore.StockLogs;
             //在庫数を更新する
             UpDateStock();
             //テキストボックス初期化
@@ -272,27 +270,20 @@ namespace InventoryManagementSystem
         /// </summary>
         private void DataSet()
         {
-            //データベースの接続情報が読み込めなかった場合の処理
-            if (string.IsNullOrEmpty(mainConn))
-            {
-                //メッセージを表示する
-                MessageBox.Show($"データベースの情報を取得できませんでした。", "確認",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
             try
             {
                 //商品データをクラスから取得する
-                var allLog = Class_ProductsDisplaySet.DataList(mainConn);
+                var allLog = new Class_ProductsDisplaySet();
+                var list = allLog.DataList();
 
                 //DataStoreを初期化する
                 Class_DataStore.StockLogs.Clear();
 
 
                 //取得した値をDataStoreに追加する
-                foreach (var list in allLog)
+                foreach (var l in list)
                 {
-                    Class_DataStore.StockLogs.Add(list);
+                    Class_DataStore.StockLogs.Add(l);
                 }
                 //出庫数だけを抽出し、絶対値に変換して表示する
                 dgvStockOut.DataSource = Class_DataStore.StockLogs
@@ -308,9 +299,15 @@ namespace InventoryManagementSystem
                     s.StaffName
                 }).ToList();
             }
-            catch (Exception ex)
+            //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
+            catch (InvalidOperationException ex1)
             {
-                MessageBox.Show($"エラーメッセージ：{ex.Message}");
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+            }
+            //呼び出し先で発生したエラーを取得する（その他のエラー）
+            catch (Exception ex2)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
             }
         }
         /// <summary>
@@ -333,10 +330,15 @@ namespace InventoryManagementSystem
                     Class_DataStore.Inventory.Add(l);
                 }
             }
-            catch (Exception ex)
+            //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
+            catch (InvalidOperationException ex1)
             {
-                //呼び出し先で発生したエラーを取得する
-                MessageBox.Show($"エラーメッセージ：{ex.Message}");
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+            }
+            //呼び出し先で発生したエラーを取得する（その他のエラー）
+            catch (Exception ex2)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
             }
         }
 }

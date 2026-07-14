@@ -13,11 +13,6 @@ namespace InventoryManagementSystem
 {
     public partial class ProductForm : Form
     {
-        /// <summary>
-        /// 接続情報
-        /// </summary>
-        string? mainConn = Class_DbConfig.ConnectionString;
-
         public ProductForm()
         {
             InitializeComponent();
