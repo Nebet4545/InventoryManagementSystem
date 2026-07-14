@@ -71,10 +71,10 @@ namespace InventoryManagementSystem
         /// </summary>
         private void ToMonthDataSet()
         {
+            //DataStore(StockLogs)を初期化する
+            Class_DataStore.StockLogs.Clear();
             try
             {
-                //DataStore(StockLogs)をを初期化する
-                Class_DataStore.StockLogs.Clear();
                 //商品の当月分の入出庫履歴データを取得する(クラス呼び出し)
                 var repo = new Class_DatabaseStockLogs();
                 var list = repo.HistoryDataset();
