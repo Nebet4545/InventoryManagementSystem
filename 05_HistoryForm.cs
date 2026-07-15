@@ -12,6 +12,9 @@ using static InventoryManagementSystem.Main;
 
 namespace InventoryManagementSystem
 {
+    /// <summary>
+    /// 商品入出庫履歴画面
+    /// </summary>
     public partial class HistoryForm : Form
     {
         public HistoryForm()
@@ -71,10 +74,10 @@ namespace InventoryManagementSystem
         /// </summary>
         private void ToMonthDataSet()
         {
-            //DataStore(StockLogs)を初期化する
-            Class_DataStore.StockLogs.Clear();
             try
             {
+                //DataStore(StockLogs)を初期化する
+                Class_DataStore.StockLogs.Clear();
                 //商品の当月分の入出庫履歴データを取得する(クラス呼び出し)
                 var repo = new Class_DatabaseStockLogs();
                 var list = repo.HistoryDataset();
@@ -92,11 +95,13 @@ namespace InventoryManagementSystem
             catch (InvalidOperationException ex1)
             {
                 MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                return;
             }
             //呼び出し先で発生したエラーを取得する（その他のエラー）
             catch (Exception ex2)
             {
                 MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                return;
             }
         }
         /// <summary>

@@ -15,9 +15,11 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace InventoryManagementSystem
 {
+    /// <summary>
+    /// 商品入庫画面
+    /// </summary>
     public partial class StockInForm : Form
     {
-
         public StockInForm()
         {
             InitializeComponent();
@@ -232,13 +234,14 @@ namespace InventoryManagementSystem
             catch (InvalidOperationException ex1)
             {
                 MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                return;
             }
             //呼び出し先で発生したエラーを取得する（その他のエラー）
             catch (Exception ex2)
             {
                 MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                return;
             }
-
             //DataStore(StockLogs)の更新＆表の更新
             DataSet();
             //在庫数を更新する
@@ -248,7 +251,6 @@ namespace InventoryManagementSystem
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
             //テキストボックス初期化
             txtReset();
-
         }
 
         /// <summary>
@@ -280,11 +282,13 @@ namespace InventoryManagementSystem
             catch (InvalidOperationException ex1)
             {
                 MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                return;
             }
             //呼び出し先で発生したエラーを取得する（その他のエラー）
             catch (Exception ex2)
             {
                 MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                return;
             }
         }
         /// <summary>
@@ -310,11 +314,13 @@ namespace InventoryManagementSystem
             catch (InvalidOperationException ex1)
             {
                 MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                return;
             }
             //呼び出し先で発生したエラーを取得する（その他のエラー）
             catch (Exception ex2)
             {
                 MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                return;
             }
         }
     }

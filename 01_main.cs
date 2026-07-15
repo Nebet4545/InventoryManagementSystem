@@ -8,13 +8,11 @@ using System.Windows.Forms;
 
 namespace InventoryManagementSystem
 {
+    /// <summary>
+    /// タイトル画面
+    /// </summary>
     public partial class Main : Form
     {
-        /// <summary>
-        /// 接続情報
-        /// </summary>
-        string? mainConn = Class_DbConfig.ConnectionString;
-
         public Main()
         {
             InitializeComponent();
@@ -83,17 +81,31 @@ namespace InventoryManagementSystem
         /// </summary>
         private void StoreSetProducts()
         {
-            // 共通クラスを呼び出す
-            var DataClass = new Class_Database_Product();
-
-            // データを取得する(sql処理)
-            var GetProducts = DataClass.ProductsAllSet();
-            // DataStoreを空にする
-            Class_DataStore.Products.Clear();
-            //取得した値をセットする
-            foreach (var setlist in GetProducts)
+            try
             {
-                Class_DataStore.Products.Add(setlist);
+                // 共通クラスを呼び出す
+                var DataClass = new Class_Database_Product();
+                // データを取得する(sql処理)
+                var GetProducts = DataClass.ProductsAllSet();
+                // DataStoreを空にする
+                Class_DataStore.Products.Clear();
+                //取得した値をセットする
+                foreach (var setlist in GetProducts)
+                {
+                    Class_DataStore.Products.Add(setlist);
+                }
+            }
+            //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
+            catch (InvalidOperationException ex1)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                return;
+            }
+            //呼び出し先で発生したエラーを取得する（その他のエラー）
+            catch (Exception ex2)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                return;
             }
         }
         /// <summary>
@@ -101,16 +113,31 @@ namespace InventoryManagementSystem
         /// </summary>
         private void StoreSetLog()
         {
-            //共通クラスを呼び出す
-            var DataClass = new Class_DatabaseStockLogs();
-            //データを取得する(sql処理)
-            var GetLogs = DataClass.StoreStockLogsSet();
-            //DataStoreを空にする
-            Class_DataStore.StockLogs.Clear();
-            //取得した値をセットする
-            foreach (var setlist in GetLogs)
+            try
             {
-                Class_DataStore.StockLogs.Add(setlist);
+                //共通クラスを呼び出す
+                var DataClass = new Class_DatabaseStockLogs();
+                //データを取得する(sql処理)
+                var GetLogs = DataClass.StoreStockLogsSet();
+                //DataStoreを空にする
+                Class_DataStore.StockLogs.Clear();
+                //取得した値をセットする
+                foreach (var setlist in GetLogs)
+                {
+                    Class_DataStore.StockLogs.Add(setlist);
+                }
+            }
+            //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
+            catch (InvalidOperationException ex1)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                return;
+            }
+            //呼び出し先で発生したエラーを取得する（その他のエラー）
+            catch (Exception ex2)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                return;
             }
         }
         /// <summary>
@@ -118,16 +145,31 @@ namespace InventoryManagementSystem
         /// </summary>
         private void StoreSetDisplay()
         {
-            //共通クラスを呼び出す
-            var DataClass = new Class_ProductsDisplaySet();
-            //データを取得する
-            var GetDisplay = DataClass.StoreDisplaySet();
-            //DataStoreを空にする
-            Class_DataStore.ProductDisplays.Clear();
-            //取得した値をセットする
-            foreach (var setlist in GetDisplay)
+            try
             {
-                Class_DataStore.ProductDisplays.Add(setlist);
+                //共通クラスを呼び出す
+                var DataClass = new Class_ProductsDisplaySet();
+                //データを取得する
+                var GetDisplay = DataClass.StoreDisplaySet();
+                //DataStoreを空にする
+                Class_DataStore.ProductDisplays.Clear();
+                //取得した値をセットする
+                foreach (var setlist in GetDisplay)
+                {
+                    Class_DataStore.ProductDisplays.Add(setlist);
+                }
+            }
+            //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
+            catch (InvalidOperationException ex1)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                return;
+            }
+            //呼び出し先で発生したエラーを取得する（その他のエラー）
+            catch (Exception ex2)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                return;
             }
         }
         /// <summary>
@@ -135,16 +177,31 @@ namespace InventoryManagementSystem
         /// </summary>
         private void StoreSetInventory()
         {
-            //共通クラスを呼び出す
-            var DataClass = new Class_Database_Product();
-            //データを取得する
-            var Inventory = DataClass.Inventorylist();
-            //DataStoreを空にする
-            Class_DataStore.Inventory.Clear();
-            //取得した値をセットする
-            foreach (var setlist in Inventory)
+            try
             {
-                Class_DataStore.Inventory.Add(setlist);
+                //共通クラスを呼び出す
+                var DataClass = new Class_Database_Product();
+                //データを取得する
+                var Inventory = DataClass.Inventorylist();
+                //DataStoreを空にする
+                Class_DataStore.Inventory.Clear();
+                //取得した値をセットする
+                foreach (var setlist in Inventory)
+                {
+                    Class_DataStore.Inventory.Add(setlist);
+                }
+            }
+            //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
+            catch (InvalidOperationException ex1)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                return;
+            }
+            //呼び出し先で発生したエラーを取得する（その他のエラー）
+            catch (Exception ex2)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                return;
             }
         }
         /// <summary>

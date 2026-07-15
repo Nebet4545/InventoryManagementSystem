@@ -11,14 +11,11 @@ using static InventoryManagementSystem.Main;
 
 namespace InventoryManagementSystem
 {
+    /// <summary>
+    /// 商品データ登録画面
+    /// </summary>
     public partial class ProductAddForm : Form
     {
-        /// <summary>
-        /// 接続情報
-        /// </summary>
-        string? mainConn = Class_DbConfig.ConnectionString;
-
-
         public ProductAddForm()
         {
             InitializeComponent();
@@ -120,91 +117,39 @@ namespace InventoryManagementSystem
                 return;
             }
 
-            //sql文記述用1(商品マスタ)
-            var sbsqlProducts = new StringBuilder();
+            //商品データを追加登録し、データベースの更新を行う
+            try
             {
-                string sql =
-                    @"INSERT INTO ""Products""
-                        (""ProductCode"",""ProductName"",""Price"")
-                        VALUES
-                        (@ProductCode,@ProductName,@Price)
-                        RETURNING ""ProductId""";
-                sbsqlProducts.AppendLine(sql);
+                //クラスを呼び出す
+                var ProductAdd = new Class_Database_Product();
+                //引数を指定して商品の登録処理を行う(sql処理)
+                ProductAdd.ProductAdd(pCode, pName, price, out string Msg);
+
+                //商品データの登録が正常に行われた場合、メッセージを表示する
+                MessageBox.Show($"{Msg}");
             }
-            //sql文記述用2(在庫)
-            var sbsqlInventory = new StringBuilder();
+            //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
+            catch (InvalidOperationException ex1)
             {
-                string sql =
-                    @"INSERT INTO ""Inventory""
-                        (""ProductId"",""ProductStock"")
-                        VALUES
-                        (@ProductId,@ProductStock)";
-                sbsqlInventory.AppendLine(sql);
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                return;
             }
-
-            //データベースに接続
-            using (var conn = new NpgsqlConnection(mainConn))
+            //呼び出し先で発生したエラーを取得する（その他のエラー）
+            catch (Exception ex2)
             {
-                try
-                {
-                    //データベースを開く
-                    conn.Open();
-                    //トランザクション開始
-                    using (NpgsqlTransaction tran = conn.BeginTransaction())
-                    {
-                        //sql文1の実行
-                        using (var cmd = new NpgsqlCommand(sbsqlProducts.ToString(), conn))
-                        {
-                            try
-                            {
-                                //各項目を登録
-                                cmd.Parameters.AddWithValue("@ProductCode", pCode); //商品コード
-                                cmd.Parameters.AddWithValue("@ProductName", pName); //商品名
-                                cmd.Parameters.AddWithValue("@Price", int.Parse(pPrice)); //単価
-
-                                //取得した自動番号を受け取る
-                                var ProductId = cmd.ExecuteScalar();
-
-                                //sql文の実行(2回目)
-                                using (var cmd2 = new NpgsqlCommand(sbsqlInventory.ToString(), conn))
-                                {
-                                    //新しく作ったコマンドを同じトランザクションに
-                                    cmd2.Transaction = tran;
-
-                                    //各項目を登録
-                                    cmd2.Parameters.AddWithValue("@ProductId", Convert.ToInt32(ProductId)); //商品ID
-                                    cmd2.Parameters.AddWithValue("@ProductStock", 0); //デフォルト値：0
-
-                                    cmd2.ExecuteNonQuery();
-                                }
-                                tran.Commit();
-                            }
-                            catch (Exception ex2)
-                            {
-                                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
-                                tran.Rollback();
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex1)
-                {
-                    MessageBox.Show($"エラーメッセージ：{ex1.Message}");
-                }
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                return;
             }
+
             //商品マスタを更新する
             StoreSetProducts();
-
             //表に表示する
             DisplaySet();
-
             // 登録メッセージの表示
             MessageBox.Show("商品データを登録しました。", "確認",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
-
             //テキストボックス初期化
             txtReset();
-
         }
 
         /// <summary>
@@ -245,16 +190,31 @@ namespace InventoryManagementSystem
         /// </summary>
         private void DisplaySet()
         {
-            //共通クラスを呼び出す
-            var DataSet = new Class_ProductsDisplaySet();
-            //データを取得する(sql処理)
-            var Displaylist = DataSet.StoreDisplaySet();
-            //DataStoreを空にする
-            Class_DataStore.ProductDisplays.Clear();
-            //取得した値をセットする
-            foreach (var setlist in Displaylist)
+            try
             {
-                Class_DataStore.ProductDisplays.Add(setlist);
+                //共通クラスを呼び出す
+                var DataSet = new Class_ProductsDisplaySet();
+                //データを取得する(sql処理)
+                var Displaylist = DataSet.StoreDisplaySet();
+                //DataStoreを空にする
+                Class_DataStore.ProductDisplays.Clear();
+                //取得した値をセットする
+                foreach (var setlist in Displaylist)
+                {
+                    Class_DataStore.ProductDisplays.Add(setlist);
+                }
+            }
+            //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
+            catch (InvalidOperationException ex1)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                return;
+            }
+            //呼び出し先で発生したエラーを取得する（その他のエラー）
+            catch (Exception ex2)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                return;
             }
         }
         /// <summary>
@@ -262,19 +222,33 @@ namespace InventoryManagementSystem
         /// </summary>
         private void StoreSetProducts()
         {
-            // 共通クラスを呼び出す
-            var DataClass = new Class_Database_Product();
-
-            // データを取得する(sql処理)
-            List<Class_Product> GetProducts = DataClass.ProductsAllSet();
-            // DataStoreを空にする
-            Class_DataStore.Products.Clear();
-            //取得した値をセットする
-            foreach (var setlist in GetProducts)
+            try
             {
-                Class_DataStore.Products.Add(setlist);
-            }
+                // 共通クラスを呼び出す
+                var DataClass = new Class_Database_Product();
 
+                // データを取得する(sql処理)
+                List<Class_Product> GetProducts = DataClass.ProductsAllSet();
+                // DataStoreを空にする
+                Class_DataStore.Products.Clear();
+                //取得した値をセットする
+                foreach (var setlist in GetProducts)
+                {
+                    Class_DataStore.Products.Add(setlist);
+                }
+            }
+            //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
+            catch (InvalidOperationException ex1)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                return;
+            }
+            //呼び出し先で発生したエラーを取得する（その他のエラー）
+            catch (Exception ex2)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                return;
+            }
         }
     }
 }

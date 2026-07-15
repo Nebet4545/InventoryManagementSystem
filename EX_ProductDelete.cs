@@ -13,14 +13,11 @@ using static InventoryManagementSystem.Main;
 
 namespace InventoryManagementSystem
 {
+    /// <summary>
+    /// 商品データ削除画面
+    /// </summary>
     public partial class ProductDelete : Form
     {
-        /// <summary>
-        /// 接続情報
-        /// </summary>
-        string? mainConn = Class_DbConfig.ConnectionString;
-
-
         public ProductDelete()
         {
             InitializeComponent();
@@ -194,88 +191,41 @@ namespace InventoryManagementSystem
                 }
             }
 
-            //データベースに接続
-            using (var conn = new NpgsqlConnection(mainConn))
+            //商品データを削除し、データベースの更新を行う
+            try
             {
-                try
-                {
-                    //データベースを開く
-                    conn.Open();
+                //クラスを呼び出す
+                var ProductDelete = new Class_Database_Product();
+                //引数を指定して、商品データの削除処理を行う(sql処理)
+                ProductDelete.ProductDelete(foundId,out string Msg);
 
-                    //トランザクション開始
-                    using (var tran = conn.BeginTransaction())
-                    {
-                        //sql文記述用1(Inventory:在庫)
-                        var sbsqlInventory = new StringBuilder();
-                        {
-                            string sql =
-                                @"DELETE FROM ""Inventory""
-                                WHERE
-                                ""ProductId"" = @ProductId";
-                            sbsqlInventory.AppendLine(sql);
-                        }
-                        //sql文記述用2(Products用)
-                        var sbsqlProduct = new StringBuilder();
-                        {
-                            string sql =
-                                @"DELETE FROM ""Products""
-                                            WHERE 
-                                            ""ProductId"" = @ProductId";
-                            sbsqlProduct.AppendLine(sql);
-                        }
-
-                        //sql文実行(1回目)
-                        using (var cmd = new NpgsqlCommand(sbsqlInventory.ToString(), conn))
-                        {
-                            try
-                            {
-                                //トランザクションを紐づけ
-                                cmd.Transaction = tran;
-
-                                //商品コードを削除する(商品IDで指定)
-                                cmd.Parameters.AddWithValue("@ProductId", foundId);
-                                cmd.ExecuteNonQuery();
-
-                                //sql文実行(2回目)
-                                using (var cmd2 = new NpgsqlCommand(sbsqlProduct.ToString(), conn))
-                                {
-                                    //トランザクションを紐づけ
-                                    cmd2.Transaction = tran;
-                                    //商品IDを削除する
-                                    cmd2.Parameters.AddWithValue("@ProductId", foundId);
-                                    cmd2.ExecuteNonQuery();
-                                }
-                                tran.Commit();
-
-                                //削除時のメッセージ表示
-                                MessageBox.Show("データを削除しました。", "確認",
-                                    MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                                //コンボボックス初期化の関数呼び出し
-                                cmbReset();
-                                //テキストボックス初期化の関数呼び出し
-                                txtReset();
-
-                                //商品マスタのデータを更新する
-                                StoreSetProducts();
-                                //表示画面のデータを取得する
-                                StoreSetDisplay();
-                                //表に反映
-                                Class_DataStore.ProductDisplays.ResetBindings();
-                            }
-                            catch (Exception ex2)
-                            {
-                                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
-                                tran.Rollback();
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex1)
-                {
-                    MessageBox.Show($"エラーメッセージ：{ex1.Message}");
-                }
+                //商品データの削除が正常に行われた場合、メッセージを表示する
+                MessageBox.Show($"{Msg}");
             }
+            //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
+            catch (InvalidOperationException ex1)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                return;
+            }
+            //呼び出し先で発生したエラーを取得する（その他のエラー）
+            catch (Exception ex2)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                return;
+            }
+
+            //コンボボックス初期化の関数呼び出し
+            cmbReset();
+            //テキストボックス初期化の関数呼び出し
+            txtReset();
+
+            //商品マスタのデータを更新する
+            StoreSetProducts();
+            //表示画面のデータを取得する
+            StoreSetDisplay();
+            //表に反映
+            Class_DataStore.ProductDisplays.ResetBindings();
         }
         /// <summary>
         /// キャンセルボタンの設定
@@ -296,16 +246,31 @@ namespace InventoryManagementSystem
         /// </summary>
         private void StoreSetDisplay()
         {
-            //共通のクラスを呼び出す
-            var DataClass = new Class_ProductsDisplaySet();
-            //データを取得する(sql処理)
-            var GetDisplay = DataClass.StoreDisplaySet();
-            //DataStoreを空にする
-            Class_DataStore.ProductDisplays.Clear();
-            //取得した値をセットする
-            foreach (var setlist in GetDisplay)
+            try
             {
-                Class_DataStore.ProductDisplays.Add(setlist);
+                //共通のクラスを呼び出す
+                var DataClass = new Class_ProductsDisplaySet();
+                //データを取得する(sql処理)
+                var GetDisplay = DataClass.StoreDisplaySet();
+                //DataStoreを空にする
+                Class_DataStore.ProductDisplays.Clear();
+                //取得した値をセットする
+                foreach (var setlist in GetDisplay)
+                {
+                    Class_DataStore.ProductDisplays.Add(setlist);
+                }
+            }
+            //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
+            catch (InvalidOperationException ex1)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                return;
+            }
+            //呼び出し先で発生したエラーを取得する（その他のエラー）
+            catch (Exception ex2)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                return;
             }
         }
         /// <summary>
@@ -313,16 +278,31 @@ namespace InventoryManagementSystem
         /// </summary>
         private void StoreSetProducts()
         {
-            //共通のクラスを呼び出す
-            var DataClass = new Class_Database_Product();
-            //データを取得する(sql処理)
-            var GetProducts = DataClass.ProductsAllSet();
-            //DataStoreを空にする
-            Class_DataStore.Products.Clear();
-            //取得した値をセットする
-            foreach (var setlist in GetProducts)
+            try
             {
-                Class_DataStore.Products.Add(setlist);
+                //共通のクラスを呼び出す
+                var DataClass = new Class_Database_Product();
+                //データを取得する(sql処理)
+                var GetProducts = DataClass.ProductsAllSet();
+                //DataStoreを空にする
+                Class_DataStore.Products.Clear();
+                //取得した値をセットする
+                foreach (var setlist in GetProducts)
+                {
+                    Class_DataStore.Products.Add(setlist);
+                }
+            }
+            //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
+            catch (InvalidOperationException ex1)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                return;
+            }
+            //呼び出し先で発生したエラーを取得する（その他のエラー）
+            catch (Exception ex2)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                return;
             }
         }
     }

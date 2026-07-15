@@ -11,6 +11,9 @@ using static InventoryManagementSystem.Main;
 
 namespace InventoryManagementSystem
 {
+    /// <summary>
+    /// 商品マスタ画面
+    /// </summary>
     public partial class ProductForm : Form
     {
         public ProductForm()
@@ -77,16 +80,31 @@ namespace InventoryManagementSystem
         /// </summary>
         private void DisplaySet()
         {
-            //共通のクラスを呼び出す
-            var DataClass = new Class_ProductsDisplaySet();
-            //データを取得する(sql処理)
-            var GetDisplay = DataClass.StoreDisplaySet();
-            //DataStoreを空にする
-            Class_DataStore.ProductDisplays.Clear();
-            //値をセットする
-            foreach (var setlist in GetDisplay)
+            try
             {
-                Class_DataStore.ProductDisplays.Add(setlist);
+                //共通のクラスを呼び出す
+                var DataClass = new Class_ProductsDisplaySet();
+                //データを取得する(sql処理)
+                var GetDisplay = DataClass.StoreDisplaySet();
+                //DataStoreを空にする
+                Class_DataStore.ProductDisplays.Clear();
+                //値をセットする
+                foreach (var setlist in GetDisplay)
+                {
+                    Class_DataStore.ProductDisplays.Add(setlist);
+                }
+            }
+            //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
+            catch (InvalidOperationException ex1)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                return;
+            }
+            //呼び出し先で発生したエラーを取得する（その他のエラー）
+            catch (Exception ex2)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                return;
             }
         }
     }

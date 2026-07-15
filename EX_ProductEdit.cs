@@ -12,14 +12,11 @@ using static InventoryManagementSystem.Main;
 
 namespace InventoryManagementSystem
 {
+    /// <summary>
+    /// 商品データ編集＆更新画面
+    /// </summary>
     public partial class ProductEdit : Form
     {
-        /// <summary>
-        /// 接続情報
-        /// </summary>
-        public string? mainConn = Class_DbConfig.ConnectionString;
-
-
         public ProductEdit()
         {
             InitializeComponent();
@@ -175,56 +172,28 @@ namespace InventoryManagementSystem
             txtProductName.BackColor = SystemColors.Window;
             txtPrice.BackColor = SystemColors.Window;
 
-            //sql文記述用
-            var sbsql = new StringBuilder();
-
-            //データベースに接続
-            using (var conn = new NpgsqlConnection(mainConn))
+            //商品データを編集＆更新を行う
+            try
             {
-                try
-                {
-                    //データベースを開く
-                    conn.Open();
+                //クラスを呼び出す
+                var ProductEdit = new Class_Database_Product();
+                //引数を指定して、商品データの編集及び更新を行う(sql処理)
+                ProductEdit.ProductEdit(pCode, pName, pPrice, out string Msg);
 
-                    //トランザクション開始
-                    using (var tran = conn.BeginTransaction())
-                    {
-                        //sql文記述
-                        {
-                            string sql =
-                                @"UPDATE ""Products"" SET
-                                ""ProductName"" = @ProductName,
-                                ""Price"" = @Price
-                                WHERE
-                                ""ProductCode"" = @ProductCode";
-                            sbsql.AppendLine(sql);
-                        }
-
-                        //sql文を実行
-                        using (var cmd = new NpgsqlCommand(sbsql.ToString(), conn))
-                        {
-                            try
-                            {
-                                //データベースを更新
-                                cmd.Parameters.AddWithValue("@ProductCode", pCode); //商品コード
-                                cmd.Parameters.AddWithValue("@ProductName", pName); //商品名
-                                cmd.Parameters.AddWithValue("@Price", pPrice); //単価
-
-                                cmd.ExecuteNonQuery();
-                                tran.Commit();
-                            }
-                            catch (Exception ex2)
-                            {
-                                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
-                                tran.Rollback();
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex1)
-                {
-                    MessageBox.Show($"エラーメッセージ：{ex1.Message}");
-                }
+                //商品データの更新が正常に行われた場合、メッセージを表示する
+                MessageBox.Show($"{Msg}");
+            }
+            //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
+            catch (InvalidOperationException ex1)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                return;
+            }
+            //呼び出し先で発生したエラーを取得する（その他のエラー）
+            catch (Exception ex2)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                return;
             }
             //DataStoreを更新する。
             selectedData.ProductName = pName; //商品名
@@ -240,11 +209,6 @@ namespace InventoryManagementSystem
             //コンボボックス初期設定関数呼び出し
             cmbReset();
             cmbProductList.Focus();
-
-            //メッセージを表示
-            MessageBox.Show("商品データを更新しました。", "確認",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
-
         }
         /// <summary>
         /// 閉じるボタンの設定
@@ -272,16 +236,31 @@ namespace InventoryManagementSystem
         /// </summary>
         private void DisplaySet()
         {
-            //共通クラスを呼び出す
-            var DataClass = new Class_ProductsDisplaySet();
-            //データを取得する(sql処理)
-            var DisplayList = DataClass.StoreDisplaySet();
-            //DataStoreを空にする
-            Class_DataStore.ProductDisplays.Clear();
-            //取得した値をセットする
-            foreach (var setlist in DisplayList)
+            try
             {
-                Class_DataStore.ProductDisplays.Add(setlist);
+                //共通クラスを呼び出す
+                var DataClass = new Class_ProductsDisplaySet();
+                //データを取得する(sql処理)
+                var DisplayList = DataClass.StoreDisplaySet();
+                //DataStoreを空にする
+                Class_DataStore.ProductDisplays.Clear();
+                //取得した値をセットする
+                foreach (var setlist in DisplayList)
+                {
+                    Class_DataStore.ProductDisplays.Add(setlist);
+                }
+            }
+            //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
+            catch (InvalidOperationException ex1)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                return;
+            }
+            //呼び出し先で発生したエラーを取得する（その他のエラー）
+            catch (Exception ex2)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                return;
             }
         }
     }

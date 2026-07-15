@@ -14,6 +14,9 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace InventoryManagementSystem
 {
+    /// <summary>
+    /// 商品出庫画面
+    /// </summary>
     public partial class StockOutForm : Form
     {
         public StockOutForm()
@@ -246,11 +249,13 @@ namespace InventoryManagementSystem
             catch (InvalidOperationException ex1)
             {
                 MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                return;
             }
             //呼び出し先で発生したエラーを取得する（その他のエラー）
             catch (Exception ex2)
             {
                 MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                return;
             }
 
             //DataStoreを更新&表に反映
@@ -303,11 +308,13 @@ namespace InventoryManagementSystem
             catch (InvalidOperationException ex1)
             {
                 MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                return;
             }
             //呼び出し先で発生したエラーを取得する（その他のエラー）
             catch (Exception ex2)
             {
                 MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                return;
             }
         }
         /// <summary>
@@ -334,11 +341,13 @@ namespace InventoryManagementSystem
             catch (InvalidOperationException ex1)
             {
                 MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                return;
             }
             //呼び出し先で発生したエラーを取得する（その他のエラー）
             catch (Exception ex2)
             {
                 MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                return;
             }
         }
 }
