@@ -98,13 +98,14 @@ namespace InventoryManagementSystem
             //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
             catch (InvalidOperationException ex1)
             {
-                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。","確認",
+                    MessageBoxButtons.OK,MessageBoxIcon.Error);
                 return;
             }
             //呼び出し先で発生したエラーを取得する（その他のエラー）
             catch (Exception ex2)
             {
-                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}", "確認", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
         }
@@ -130,13 +131,14 @@ namespace InventoryManagementSystem
             //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
             catch (InvalidOperationException ex1)
             {
-                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。", "確認",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             //呼び出し先で発生したエラーを取得する（その他のエラー）
             catch (Exception ex2)
             {
-                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}", "確認", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
         }
@@ -162,13 +164,14 @@ namespace InventoryManagementSystem
             //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
             catch (InvalidOperationException ex1)
             {
-                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。", "確認",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             //呼び出し先で発生したエラーを取得する（その他のエラー）
             catch (Exception ex2)
             {
-                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}", "確認", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
         }
@@ -194,13 +197,14 @@ namespace InventoryManagementSystem
             //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
             catch (InvalidOperationException ex1)
             {
-                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。", "確認",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             //呼び出し先で発生したエラーを取得する（その他のエラー）
             catch (Exception ex2)
             {
-                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}", "確認", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
         }

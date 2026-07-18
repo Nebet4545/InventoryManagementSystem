@@ -91,37 +91,45 @@ namespace InventoryManagementSystem
         /// <param name="e"></param>
         private void btnSearch_Click(object sender, EventArgs e)
         {
+            string ErrMsg = ""; //エラーメッセージ
+            //選択した商品コードを変数化する
+            string cmbProductCode = cmbProductCd.Text.Trim();
+
+            //クラスを呼び出す
+            var repo = new Class_ProductDef();
+            //商品コードが選択されているかをチェックする
+            if (!repo.isValid(cmbProductCode, out ErrMsg))
+            {
+                //商品コードが選択されていない場合、エラーメッセージを表示する
+                MessageBox.Show($"エラーメッセージ：{ErrMsg}", "確認", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
             //テキストボックスに選択した商品コードをセット
-            txtProductCode.Text = cmbProductCd.Text;
+            txtProductCode.Text = cmbProductCode;
             string pCode = txtProductCode.Text; //商品コード
 
-            //DataStore(Products)から商品コードを探す
-            var foudName = Class_DataStore.Products
-                .FirstOrDefault(p => p.ProductCode.Equals(pCode, StringComparison.OrdinalIgnoreCase));
-
-            //商品コードが見つからなかった場合の処理
-            if (foudName == null)
+            //選択された商品コードの商品名をチェックする
+            if (!repo.ProductNameCheck(pCode, out string ProductName, out ErrMsg))
             {
-                //メッセージを表示する
-                MessageBox.Show("該当の商品が見つかりませんでした。", "確認",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                //該当の商品が見つからなかった場合、エラーメッセージを表示する
+                MessageBox.Show($"エラーメッセージ：{ErrMsg}", "確認", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 //各テキストボックスを初期化
                 txtReset();
                 //コンボボックスにフォーカス
                 cmbProductCd.Focus();
                 return;
             }
+            else
+            {
+                //商品名をセットする
+                txtProductName.Text = ProductName;
+            }
 
-            //商品名を取得
-            txtProductName.Text = foudName.ProductName;
+            //選択された商品コードの現在の在庫数を取得する
+            int Curr = repo.GetCurrentStock(pCode);
+            //現在の在庫数をセットする
+            txtCurrentStock.Text = Curr.ToString();
 
-            //商品IDから在庫数を取得する
-            var Currquan = Class_DataStore.Inventory
-                .Where(p => p.ProductId == foudName.ProductId)
-                .Select(p => p.ProductStock).Sum();
-
-            //現在の在庫数を取得
-            txtCurrentStock.Text = Currquan.ToString();
         }
 
         /// <summary>
@@ -133,79 +141,38 @@ namespace InventoryManagementSystem
         {
             //各項目を変数化
             int ProductId; //商品ID
-            string ProductCode = txtProductCode.Text; //商品コード
-            string ProductName = txtProductName.Text; //商品名
+            string ProductCode = txtProductCode.Text.Trim(); //商品コード
+            string ProductName = txtProductName.Text.Trim(); //商品名
             int quan; //出庫数
             DateTime OutDate = StockOutDate.Value; //出庫日
             string staff = txtStaffName.Text.Trim(); //担当者
             string Category = "出庫"; //カテゴリー
 
-            //数量が入力されていない場合の処理
-            if (string.IsNullOrWhiteSpace(txtStockOut.Text))
+            //エラーメッセージ
+            string ErrMsg = "";
+            string Stockoutquan = txtStockOut.Text.Trim(); //出庫数
+
+            //クラスを呼び出す
+            var repo = new Class_ProductDef();
+            //選択された商品コードの在庫数を取得する
+            int Curr = repo.GetCurrentStock(ProductCode);
+
+            //出庫数適性の値かチェックする
+            if (!repo.IsStockCheck(Stockoutquan,Category, out ErrMsg,out quan,Curr))
             {
-                //メッセージを表示する
-                MessageBox.Show("出庫数量が入力されていません。", "確認",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                //出庫数が適正でない場合、エラーメッセージを表示する
+                MessageBox.Show($"エラーメッセージ：{ErrMsg}", "確認", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 //バックカラー変更
                 txtStockOut.BackColor = Color.MistyRose;
-                //出庫数のテキストボックスにカーソルを戻す
+                //入庫数のテキストボックスにカーソルを戻す
                 txtStockOut.Focus();
                 return;
             }
-            //出庫数の入力値が数値でない場合の処理
-            if (!int.TryParse(txtStockOut.Text, out quan))
-            {
-                //メッセージを表示する
-                MessageBox.Show("入力値が不正です。", "確認",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                //バックカラー変更
-                txtStockOut.BackColor = Color.MistyRose;
-                //テキストボックスを空にする
-                txtStockOut.Text = string.Empty;
-                //出庫数のテキストボックスにカーソルを戻す
-                txtStockOut.Focus();
-                return;
-            }
+            //担当者名を代入する変数を生成する
+            string StaffName = "";
 
-            //商品コードから商品IDを取得
-            var foundProduct = Class_DataStore.Products
-                .FirstOrDefault(p => p.ProductCode.Equals(ProductCode, StringComparison.OrdinalIgnoreCase));
-            if (foundProduct == null) return;
-            ProductId = foundProduct.ProductId; //商品ID
-
-            //出庫数が1以上かチェックする
-            if (quan <= 0)
-            {
-                //メッセージを表示する
-                MessageBox.Show("出庫可能数は1以上です。", "確認",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                //バックカラー変更
-                txtStockOut.BackColor = Color.MistyRose;
-                //出庫数のテキストボックスにカーソルを戻す
-                txtStockOut.Focus();
-                return;
-            }
-
-            //在庫数が0未満になる場合は出庫できないようにする
-            //検索した商品コードの現在の在庫数を調べる
-            var CurrentStock = Class_DataStore.Inventory
-                .Where(p => p.ProductId == ProductId)
-                .Sum(p => p.ProductStock);
-
-            //出庫数が在庫数を越えている場合の処理
-            if (CurrentStock - quan < 0)
-            {
-                MessageBox.Show("在庫数量を越えた出庫はできません。", "確認",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-                //バックカラー変更
-                txtStockOut.BackColor = Color.MistyRose;
-                //出庫数のテキストボックスにカーソルを戻す
-                txtStockOut.Focus();
-                return;
-            }
-
-            //担当者が入力されているかチェックする
-            if (string.IsNullOrWhiteSpace(txtStaffName.Text))
+            //担当者が入力されているかをチェックする
+            if (repo.IsStaffNameCheck(staff))
             {
                 //入力 or　未入力のメッセージを表示
                 var result = MessageBox.Show($"担当者が入力されていません。{Environment.NewLine}" +
@@ -214,17 +181,14 @@ namespace InventoryManagementSystem
                 //Yesが選択された場合の処理
                 if (result == DialogResult.Yes)
                 {
-                    //入力文字を"未入力"として処理する
-                    staff = "未入力";
-                    //担当者のテキストボックスのバックカラーを戻す
-                    txtStaffName.BackColor = SystemColors.Window;
+                    //担当者名を"未入力"として処理する
+                    StaffName = "未入力";
                 }
                 //Noが選択された場合の処理
                 else
                 {
-                    //メッセージを表示
-                    MessageBox.Show("名前を入力してください。", "確認",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    //担当者が入力されておらず、"未入力"で登録が選択されなかった場合、エラーメッセージを表示する
+                    MessageBox.Show("エラーメッセージ：名前を入力してください。", "確認", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     //テキストボックス初期化
                     txtStaffName.Text = string.Empty;
                     //バックカラー変更
@@ -234,27 +198,46 @@ namespace InventoryManagementSystem
                     return;
                 }
             }
-            //バックカラーを戻す
+            //担当者が入力されている場合
+            else
+            {
+                //担当者名を代入する
+                StaffName = staff;
+            }
+
+            //入力されていればバックカラーを戻す
             txtStockOut.BackColor = SystemColors.Window;
             txtStaffName.BackColor = SystemColors.Window;
 
+            //商品コードから商品IDを取得する
+
+            //商品IDを取得できなかった(商品が存在しない)場合の処理
+            if (!repo.TryGetProductValues(ProductCode, out ProductId, out ProductName, out int Price, out ErrMsg))
+            {
+                //エラーメッセージを表示する
+                MessageBox.Show($"エラーメッセージ：{ErrMsg}", "確認", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+
             //商品の入庫処理を行う(クラス呼び出し)
-            var repo = new Class_DatabaseStockLogs();
+            var repo2 = new Class_DatabaseStockLogs();
             try
             {
-                repo.SaveToDatabase(ProductId, ProductCode, foundProduct.ProductName, foundProduct.Price, Category, quan, OutDate, staff);
+                repo2.SaveToDatabase(ProductId, ProductCode, ProductName, Price, Category, quan, OutDate, staff);
 
             }
             //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
             catch (InvalidOperationException ex1)
             {
-                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。","確認",
+                    MessageBoxButtons.OK,MessageBoxIcon.Error);
                 return;
             }
             //呼び出し先で発生したエラーを取得する（その他のエラー）
             catch (Exception ex2)
             {
-                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}","確認",MessageBoxButtons.OK,MessageBoxIcon.Error);
                 return;
             }
 
@@ -307,13 +290,14 @@ namespace InventoryManagementSystem
             //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
             catch (InvalidOperationException ex1)
             {
-                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。", "確認", 
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             //呼び出し先で発生したエラーを取得する（その他のエラー）
             catch (Exception ex2)
             {
-                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}", "確認", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
         }
@@ -340,13 +324,14 @@ namespace InventoryManagementSystem
             //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
             catch (InvalidOperationException ex1)
             {
-                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。", "確認",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             //呼び出し先で発生したエラーを取得する（その他のエラー）
             catch (Exception ex2)
             {
-                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}", "確認", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
         }
