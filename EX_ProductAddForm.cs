@@ -44,9 +44,9 @@ namespace InventoryManagementSystem
         private void btnOk_Click(object sender, EventArgs e)
         {
             // 各項目を変数化
-            var pCode = txtProductCode.Text; //商品コード
-            var pName = txtProductName.Text; //商品名
-            var pPrice = txtPrice.Text; //商品単価
+            var pCode = txtProductCode.Text.Trim(); //商品コード
+            var pName = txtProductName.Text.Trim(); //商品名
+            var pPrice = txtPrice.Text.Trim(); //商品単価
 
             // 各項目のバックカラー変更【初期化】
             var colorTargets = new TextBox[] { txtProductCode, txtProductName, txtPrice };
@@ -55,35 +55,38 @@ namespace InventoryManagementSystem
                 tbColor.BackColor = SystemColors.Window;
             }
 
-            // 商品コードの入力チェック
-            if (string.IsNullOrWhiteSpace(pCode))
+            //クラス呼び出し
+            var repo = new Class_ProductDef();
+
+            //商品コードが入力されていない場合の処理
+            if (!repo.isValidProductCode(pCode, out string ErrMsg))
             {
                 //メッセージを表示する
-                MessageBox.Show("商品コードが未入力です。", "確認",
-                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show($"エラーメッセージ：{ErrMsg}", "確認", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 //商品コードのテキストボックスのバックカラーを変更する
                 txtProductCode.BackColor = Color.MistyRose;
                 //商品コードのテキストボックスにカーソルを戻す
                 txtProductCode.Focus();
                 return;
             }
-            // 商品名の入力チェック
-            if (string.IsNullOrWhiteSpace(pName))
+            // 商品名が入力されていない場合の処理
+            if (!repo.IsValidProductName(pName,out ErrMsg))
             {
                 //メッセージを表示する
-                MessageBox.Show("商品名が未入力です。", "確認",
+                MessageBox.Show($"エラーメッセージ：{ErrMsg}", "確認",
                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                //商品コードのテキストボックスのバックカラーを変更する
+
+                //商品名のテキストボックスのバックカラーを変更する
                 txtProductName.BackColor = Color.MistyRose;
-                //商品コードのテキストボックスにカーソルを戻す
+                //商品名のテキストボックスにカーソルを戻す
                 txtProductName.Focus();
                 return;
             }
-            // 商品単価の入力チェック
-            if (string.IsNullOrWhiteSpace(pPrice))
+            // 商品単価が入力されていない場合の処理
+            if (!repo.IsValidProductPrice(pPrice,out ErrMsg))
             {
                 //メッセージを表示する
-                MessageBox.Show("商品単価が未入力です。", "確認",
+                MessageBox.Show($"エラーメッセージ：{ErrMsg}", "確認",
                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 //単価のテキストボックスのバックカラーを変更する
                 txtPrice.BackColor = Color.MistyRose;
@@ -92,10 +95,10 @@ namespace InventoryManagementSystem
                 return;
             }
             // 商品単価の数値チェック
-            if (!int.TryParse(pPrice, out int price))
+            if (!repo.ConvertPrice(pPrice,out ErrMsg, out int price))
             {
                 //メッセージを表示する
-                MessageBox.Show("商品単価が不正な値です。", "確認",
+                MessageBox.Show($"エラーメッセージ：{ErrMsg}", "確認",
                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 //単価のテキストボックスのバックカラーを変更する
                 txtPrice.BackColor = Color.MistyRose;

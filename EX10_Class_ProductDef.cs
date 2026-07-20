@@ -11,18 +11,85 @@ namespace InventoryManagementSystem
     public class Class_ProductDef
     {
         /// <summary>
-        /// 商品コードが入力(選択)されているかをチェックする関数
+        /// 商品コードが入力または選択されているかをチェックする関数
         /// </summary>
-        public bool isValid(string cmbProductCode, out string ErrMsg)
+        public bool isValidProductCode(string ProductCode, out string ErrMsg)
         {
             ErrMsg = ""; //呼び出し元で表示するエラーメッセージ
-            //入力チェック
-            if (string.IsNullOrWhiteSpace(cmbProductCode))
+
+            //商品コードの入力チェック
+            if (string.IsNullOrWhiteSpace(ProductCode))
             {
                 //呼び出し元で表示するエラーメッセージ
                 ErrMsg = "商品コードが選択されていません。";
                 return false;
             }
+            return true;
+        }
+        /// <summary>
+        /// 商品名が入力または選択されているかをチェックする関数
+        /// </summary>
+        /// <returns></returns>
+        public bool IsValidProductName(string ProductName,out string ErrMsg)
+        {
+            ErrMsg = ""; //呼び出し元で表示するエラーメッセージ
+
+            //商品名の入力チェック
+            if (string.IsNullOrWhiteSpace(ProductName))
+            {
+                //呼び出し元で表示するエラーメッセージ
+                ErrMsg = "商品名が入力されていません。";
+                return false;
+            }
+            return true;
+        }
+        /// <summary>
+        /// 商品単価が入力または選択されているかをチェックする関数
+        /// </summary>
+        /// <returns></returns>
+        public bool IsValidProductPrice(string Price,out string ErrMsg)
+        {
+            ErrMsg = ""; //呼び出し元で表示するエラーメッセージ
+
+            //商品単価の入力チェック
+            if (string.IsNullOrWhiteSpace(Price))
+            {
+                //呼び出し元で表示するエラーメッセージ
+                ErrMsg = "商品単価が入力されていません。";
+                return false;
+            }
+            return true;
+        }
+        /// <summary>
+        /// 担当者名が入力されているかをチェックする関数
+        /// </summary>
+        /// <returns></returns>
+        public bool IsStaffNameCheck(string staff)
+        {
+            //担当者が入力されているかチェックする
+
+            //入力されていなければtrue(フォーム内でのチェックに使うため)
+            return string.IsNullOrWhiteSpace(staff);
+        }
+        /// <summary>
+        /// 入力した文字列を数値化して商品単価に変換する関数
+        /// </summary>
+        /// <returns></returns>
+        public bool ConvertPrice(string Price,out string ErrMsg,out int ConvertedP)
+        {
+            ErrMsg = ""; //呼び出し元で表示するエラーメッセージ
+            ConvertedP = 0; //商品単価を初期化する
+
+            //商品単価に変換出来なかった場合の処理
+            if (!int.TryParse(Price,out int p))
+            {
+                //呼び出し元で表示するエラーメッセージ
+                ErrMsg = "商品単価が不正な値です。";
+                return false;
+            }
+
+            //商品単価を代入する
+            ConvertedP = p;
             return true;
         }
         /// <summary>
@@ -138,17 +205,6 @@ namespace InventoryManagementSystem
             return true;
         }
         /// <summary>
-        /// 担当者名が入力されているかをチェックする関数
-        /// </summary>
-        /// <returns></returns>
-        public bool IsStaffNameCheck(string staff)
-        {
-            //担当者が入力されているかチェックする
-
-            //入力されていなければtrue(フォーム内でのチェックに使うため)
-            return string.IsNullOrWhiteSpace(staff);
-        }
-        /// <summary>
         /// 選択された商品コードの商品ID・商品名・単価を取得する関数
         /// </summary>
         /// <returns></returns>
@@ -210,6 +266,20 @@ namespace InventoryManagementSystem
                 return true;
             }
         }
+        /// <summary>
+        /// 当月初日の日付と末日の日付を取得する関数
+        /// </summary>
+        /// <param name="StartDate"></param>
+        /// <param name="EndDate"></param>
+        public void GetStartEndDate(out DateTime? StartDate, out DateTime? EndDate)
+        {
+            //当月初日の値を取得する
+            DateTime Start = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+            StartDate = Start;
+
+            //当月末尾の値を取得する
+            EndDate = Start.AddMonths(1).AddSeconds(-1);
         }
+    }
     }
 

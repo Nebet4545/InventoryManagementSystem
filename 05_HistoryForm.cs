@@ -94,13 +94,14 @@ namespace InventoryManagementSystem
             //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
             catch (InvalidOperationException ex1)
             {
-                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。","確認",
+                    MessageBoxButtons.OK,MessageBoxIcon.Error);
                 return;
             }
             //呼び出し先で発生したエラーを取得する（その他のエラー）
             catch (Exception ex2)
             {
-                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}","確認",MessageBoxButtons.OK,MessageBoxIcon.Error);
                 return;
             }
         }
@@ -189,10 +190,11 @@ namespace InventoryManagementSystem
             //当月分の履歴を表示するラジオボタンがチェックされている場合の処理
             if (RadioThisMonth.Checked == true)
             {
-                //当月初日の値を取得する
-                StartDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
-                //当月末尾の値を取得する
-                EndDate = StartDate.Value.AddMonths(1).AddDays(-1);
+                //クラス呼び出し
+                var GetDate = new Class_ProductDef();
+
+                //当月初日の日付と当月末日の日付を取得する
+                GetDate.GetStartEndDate(out StartDate, out EndDate);
             }
 
             //データベースから検索条件に合わせた入出庫履歴のデータを取得する(クラス呼び出し)
@@ -206,13 +208,14 @@ namespace InventoryManagementSystem
             //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
             catch (InvalidOperationException ex1)
             {
-                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。", "確認",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             //呼び出し先で発生したエラーを取得する（その他のエラー）
             catch (Exception ex2)
             {
-                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}", "確認", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 

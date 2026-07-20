@@ -98,7 +98,7 @@ namespace InventoryManagementSystem
             //クラスを呼び出す
             var repo = new Class_ProductDef();
             //商品コードが選択されているかをチェックする
-            if (!repo.isValid(cmbProductCode, out ErrMsg))
+            if (!repo.isValidProductCode(cmbProductCode, out ErrMsg))
             {
                 //商品コードが選択されていない場合、エラーメッセージを表示する
                 MessageBox.Show($"エラーメッセージ：{ErrMsg}", "確認", MessageBoxButtons.OK, MessageBoxIcon.Error);
