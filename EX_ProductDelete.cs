@@ -81,28 +81,24 @@ namespace InventoryManagementSystem
         /// <param name="e"></param>
         private void btnCdSearch_Click(object sender, EventArgs e)
         {
-            var pCode = cmbProductList.Text; //商品コード
+            var pCode = cmbProductList.Text.Trim(); //商品コード
+            string ErrMsg = "";  //エラーメッセージ
 
-            //DataStore(Products)から選択した商品コードと一致する商品コードを探す
-            var SearchCd = Class_DataStore.Products
-                .FirstOrDefault(c => c.ProductCode.Equals(pCode, StringComparison.OrdinalIgnoreCase));
-
-            //検索した商品コードが見つからなかった場合の処理
-            if (SearchCd == null)
+            //選択した商品コードの商品名を取得する
+            var repo = new Class_ProductDef();
+            if (!repo.TryGetProductValues(pCode, out _, out string ProductName, out int Price, out ErrMsg))
             {
-                //メッセージを表示する
-                MessageBox.Show("商品コードが見つかりませんでした。", "確認",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                //エラーメッセージを表示する
+                MessageBox.Show($"エラーメッセージ：{ErrMsg}", "確認", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            //検索した商品コードが見つかった場合の処理
-            else
-            {
-                //各テキストボックスに対応する項目を転記
-                txtProductCode.Text = pCode; //商品コード
-                txtProductName.Text = SearchCd.ProductName; //商品名
-                txtPrice.Text = SearchCd.Price.ToString(); //単価
-            }
+
+            //各テキストボックスに取得した値をセットする
+
+            txtProductCode.Text = pCode; //商品コード
+            txtProductName.Text = ProductName; //商品名
+            txtPrice.Text = Price.ToString(); //商品単価
+
         }
         /// <summary>
         /// 削除ボタンの設定
@@ -114,56 +110,36 @@ namespace InventoryManagementSystem
             //検索処理が行われていない場合
             if (string.IsNullOrWhiteSpace(txtProductCode.Text))
             {
-                //メッセージを表示する
+                //エラーメッセージを表示する
                 MessageBox.Show("各項目が表示されていません。", "確認",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
-            //削除確認を行う
-            var result = MessageBox.Show("本当に削除しますか？", "確認",
-                MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            string pCode = txtProductCode.Text.Trim(); //商品コード
 
-            //Noが選択された場合の処理
-            if (result == DialogResult.No)
+            //商品コードから商品IDを取得する
+            var repo = new Class_ProductDef();
+
+            //商品IDが取得出来なかった場合の処理
+            if (!repo.GetProductId(pCode,out int ProductId, out string ErrMsg))
             {
-                //メッセージを表示する
-                MessageBox.Show("キャンセルしました。", "確認",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                //エラーメッセージを表示する
+                MessageBox.Show($"エラーメッセージ：{ErrMsg}", "確認", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 //テキストボックス初期化の関数呼び出し
                 txtReset();
                 return;
             }
 
-            string pCode = txtProductCode.Text; //商品コード
-
-            //DataStore(Products)から検索した商品コードと一致する商品コードを探す
-            var SelectCode = Class_DataStore.Products
-                .FirstOrDefault(c => c.ProductCode.Equals(pCode, StringComparison.OrdinalIgnoreCase));
-
-            //商品コードが見つからなかった場合の処理
-            if (SelectCode == null)
-            {
-                //メッセージを表示する
-                MessageBox.Show("該当の商品が見つかりません。", "確認",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-            //商品コードから商品IDを取得する
-            int foundId = SelectCode.ProductId;
-
-            //在庫数を取得する
-            var stock = Class_DataStore.Inventory
-                .Where(p => p.ProductId == foundId)
-                .Sum(x => x.ProductStock);
+            //選択した商品の現在の在庫数を取得する
+            int stock = repo.GetCurrentStock(pCode);
 
             //在庫数が存在する場合の処理
             if (stock > 0)
             {
                 //メッセージを表示
-                MessageBox.Show($"選択された商品は在庫が存在します。{Environment.NewLine}" +
+                MessageBox.Show($"エラーメッセージ：選択された商品は在庫が存在します。{Environment.NewLine}" +
                 $"削除することはできません。", "確認", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
                 //テキストボックス初期化の関数呼び出し
                 txtReset();
                 //コンボボックスにカーソルを戻す
@@ -171,24 +147,14 @@ namespace InventoryManagementSystem
                 return;
             }
 
-            //
-            if (stock <= 0)
+            //商品データ削除時の最終チェックを行う
+            if (!repo.FinalCheck("データ削除", out ErrMsg, $"選択された商品の在庫は 0 です。商品情報を削除してもよろしいですか？{Environment.NewLine}※履歴データは保持されます。"))
             {
-                DialogResult DeleteCheck = MessageBox.Show($"選択された商品の在庫は 0 です。商品情報を削除してもよろしいですか？{Environment.NewLine}" +
-                    $"※履歴データは保持されます。", "確認", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-                //「いいえ」が選択された場合の処理
-                if (DeleteCheck == DialogResult.No)
-                {
-                    //メッセージを表示する
-                    MessageBox.Show("処理を中止します。", "確認",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    //テキストボックス初期化の関数を呼び出す
-                    txtReset();
-                    //コンボボックスにカーソルを戻す
-                    cmbProductList.Focus();
-                    return;
-                }
+                //メッセージを表示する
+                MessageBox.Show($"案内：{ErrMsg}", "確認", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                //テキストボックス初期化の関数呼び出し
+                txtReset();
+                return;
             }
 
             //商品データを削除し、データベースの更新を行う
@@ -197,21 +163,22 @@ namespace InventoryManagementSystem
                 //クラスを呼び出す
                 var ProductDelete = new Class_Database_Product();
                 //引数を指定して、商品データの削除処理を行う(sql処理)
-                ProductDelete.ProductDelete(foundId,out string Msg);
+                ProductDelete.ProductDelete(ProductId,out string Msg);
 
                 //商品データの削除が正常に行われた場合、メッセージを表示する
-                MessageBox.Show($"{Msg}");
+                MessageBox.Show($"案内：{Msg}","確認",MessageBoxButtons.OK,MessageBoxIcon.Information);
             }
             //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
             catch (InvalidOperationException ex1)
             {
-                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。","確認",
+                    MessageBoxButtons.OK,MessageBoxIcon.Error);
                 return;
             }
             //呼び出し先で発生したエラーを取得する（その他のエラー）
             catch (Exception ex2)
             {
-                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}","確認",MessageBoxButtons.OK,MessageBoxIcon.Error);
                 return;
             }
 
@@ -235,7 +202,7 @@ namespace InventoryManagementSystem
         private void btnCancel_Click(object sender, EventArgs e)
         {
             //メッセージを表示する
-            MessageBox.Show("キャンセルされました。", "確認",
+            MessageBox.Show("案内：キャンセルされました。", "確認",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
             //テキストボックス初期化の関数呼び出し
             txtReset();
@@ -263,13 +230,14 @@ namespace InventoryManagementSystem
             //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
             catch (InvalidOperationException ex1)
             {
-                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。", "確認", 
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             //呼び出し先で発生したエラーを取得する（その他のエラー）
             catch (Exception ex2)
             {
-                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}", "確認", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
         }
@@ -295,13 +263,14 @@ namespace InventoryManagementSystem
             //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
             catch (InvalidOperationException ex1)
             {
-                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。", "確認",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             //呼び出し先で発生したエラーを取得する（その他のエラー）
             catch (Exception ex2)
             {
-                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}", "確認", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
         }

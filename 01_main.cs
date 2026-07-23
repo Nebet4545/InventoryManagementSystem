@@ -72,7 +72,7 @@ namespace InventoryManagementSystem
         /// <param name="e"></param>
         private void btnClose_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("終了します。", "確認",
+            MessageBox.Show("案内：終了します。", "確認",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
             this.Close();
         }

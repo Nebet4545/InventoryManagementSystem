@@ -29,7 +29,7 @@ namespace InventoryManagementSystem
         private void btnCancel_Click(object sender, EventArgs e)
         {
             //
-            MessageBox.Show("キャンセルします。", "確認",
+            MessageBox.Show("案内：キャンセルします。", "確認",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
             //テキストボックス初期化の関数呼び出し
             txtReset();
@@ -107,16 +107,26 @@ namespace InventoryManagementSystem
                 return;
             }
 
-            // DataStore(Products)に入力した商品コードと同じ商品コードがある場合の処理
-            if (Class_DataStore.Products.Any(cd => cd.ProductCode.Equals(pCode, StringComparison.OrdinalIgnoreCase)))
+            // 登録したい商品コードと同じ商品コードが既にある場合の処理
+            if (!repo.IsDuplicateProductCode(pCode,out ErrMsg))
             {
                 //メッセージを表示する
-                MessageBox.Show("この商品コードは既に登録されています。", "確認",
+                MessageBox.Show($"エラーメッセージ：{ErrMsg}", "確認",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 //商品コードのテキストボックスのバックカラーを変更する
                 txtProductCode.BackColor = Color.MistyRose;
                 //商品コードのテキストボックスにカーソルを戻す
                 txtProductCode.Focus();
+                return;
+            }
+
+            //商品データ登録時の最終チェックを行う
+            if (!repo.FinalCheck("データ登録",out ErrMsg))
+            {
+                //メッセージを表示する
+                MessageBox.Show($"案内：{ErrMsg}", "確認", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                //テキストボックス初期化の関数呼び出し
+                txtReset();
                 return;
             }
 
@@ -129,18 +139,19 @@ namespace InventoryManagementSystem
                 ProductAdd.ProductAdd(pCode, pName, price, out string Msg);
 
                 //商品データの登録が正常に行われた場合、メッセージを表示する
-                MessageBox.Show($"{Msg}");
+                MessageBox.Show($"案内：{Msg}","確認",MessageBoxButtons.OK,MessageBoxIcon.Information);
             }
             //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
             catch (InvalidOperationException ex1)
             {
-                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。","確認",
+                    MessageBoxButtons.OK,MessageBoxIcon.Error);
                 return;
             }
             //呼び出し先で発生したエラーを取得する（その他のエラー）
             catch (Exception ex2)
             {
-                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}","確認",MessageBoxButtons.OK,MessageBoxIcon.Error);
                 return;
             }
 
@@ -149,7 +160,7 @@ namespace InventoryManagementSystem
             //表に表示する
             DisplaySet();
             // 登録メッセージの表示
-            MessageBox.Show("商品データを登録しました。", "確認",
+            MessageBox.Show("案内：商品データを登録しました。", "確認",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
             //テキストボックス初期化
             txtReset();
@@ -210,13 +221,14 @@ namespace InventoryManagementSystem
             //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
             catch (InvalidOperationException ex1)
             {
-                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。", "確認",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             //呼び出し先で発生したエラーを取得する（その他のエラー）
             catch (Exception ex2)
             {
-                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}", "確認", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
         }
@@ -243,13 +255,14 @@ namespace InventoryManagementSystem
             //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
             catch (InvalidOperationException ex1)
             {
-                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。", "確認",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             //呼び出し先で発生したエラーを取得する（その他のエラー）
             catch (Exception ex2)
             {
-                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}", "確認", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
         }

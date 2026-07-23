@@ -326,7 +326,7 @@ namespace InventoryManagementSystem
         /// <summary>
         /// データベースから指定された商品の入出庫履歴を取得する関数
         /// </summary>
-        public List<Class_Log> HistoryLogSearch(string pCode,string staffName, DateTime? StartDate,DateTime? EndDate)
+        public List<Class_Log> HistoryLogSearch(string ProductCode,string staffName, DateTime? StartDate,DateTime? EndDate)
         {
             //呼び出し元に返すリストを生成する
             var SelectedList = new List<Class_Log>();
@@ -356,11 +356,11 @@ namespace InventoryManagementSystem
                     using (var cmd = new NpgsqlCommand())
                     {
                         //商品コードが入力されている場合の処理
-                        if (!string.IsNullOrWhiteSpace(pCode))
+                        if (!string.IsNullOrWhiteSpace(ProductCode))
                         {
                             //商品コードが一致した商品の履歴を取得する
                             sbsql.AppendLine("AND p.\"ProductCode\" = @ProductCode");
-                            cmd.Parameters.AddWithValue("ProductCode", pCode);
+                            cmd.Parameters.AddWithValue("ProductCode", ProductCode);
                         }
                         //担当者が入力されている場合の処理
                         if (!string.IsNullOrWhiteSpace(staffName))

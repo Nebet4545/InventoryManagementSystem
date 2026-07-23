@@ -28,40 +28,38 @@ namespace InventoryManagementSystem
         /// <param name="e"></param>
         private void btnCdSearch_Click(object sender, EventArgs e)
         {
-            //コンボボックスに値が入っているかの入力チェック
-            if (string.IsNullOrWhiteSpace(cmbProductList.Text))
+            //商品コード
+            string ProductCode = cmbProductList.Text.Trim();
+
+            //クラス呼び出し
+            var repo = new Class_ProductDef();
+
+            //商品コードが選択されているかをチェックする
+            if (!repo.isValidProductCode(ProductCode, out string ErrMsg))
             {
-                MessageBox.Show("検索する商品コードが設定されていません。", "確認",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                //エラーメッセージを表示する
+                MessageBox.Show($"エラーメッセージ：{ErrMsg}", "確認", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            //コンボボックスに値が設定されている場合
-            else
+
+            //商品コードをテキストボックスにセットする
+            txtProductCode.Text = ProductCode;
+
+            //選択した商品コードから商品名と単価を取得する
+            if (!repo.TryGetProductValues(ProductCode, out _, out string ProductName, out int Price, out ErrMsg))
             {
-                //商品コードをテキストボックスにセットする
-                txtProductCode.Text = cmbProductList.Text;
-
-                //商品コードを変数化
-                var pCode = txtProductCode.Text;
-
-                //DataStore(Products)から一致した商品コードを抽出
-                var pNameAndPrice = Class_DataStore.Products
-                    .FirstOrDefault(p => p.ProductCode.Equals(pCode, StringComparison.OrdinalIgnoreCase));
-
-                //一致した商品コードが見つからなかった場合の処理
-                if (pNameAndPrice == null)
-                {
-                    //メッセージを表示する
-                    MessageBox.Show("指定した商品コードが見つかりませんでした。", "確認",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-
-                //商品名と単価をテキストボックスにセットする
-                txtProductName.Text = pNameAndPrice.ProductName;
-                txtPrice.Text = pNameAndPrice.Price.ToString();
+                //エラーメッセージを表示する
+                MessageBox.Show($"エラーメッセージ：{ErrMsg}", "確認", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                //各テキストボックスを初期化する
+                txtReset();
+                return;
             }
+
+            //商品名と単価をテキストボックスにセットする
+            txtProductName.Text = ProductName;
+            txtPrice.Text = Price.ToString();
         }
+
         /// <summary>
         /// コンボボックス初期設定の関数
         /// </summary>
@@ -100,7 +98,7 @@ namespace InventoryManagementSystem
         private void btnCancel_Click(object sender, EventArgs e)
         {
             //メッセージを表示する
-            MessageBox.Show("キャンセルされました。", "確認",
+            MessageBox.Show("案内：キャンセルされました。", "確認",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
             //テキストボックス初期化の関数呼び出し
             txtReset();
@@ -113,16 +111,21 @@ namespace InventoryManagementSystem
         private void btnOk_Click(object sender, EventArgs e)
         {
             //各項目を変数化
-            var pCode = txtProductCode.Text; //商品コード
-            var pName = txtProductName.Text; //商品名
-            int pPrice; //単価
+            var pCode = txtProductCode.Text.Trim(); //商品コード
+            var pName = txtProductName.Text.Trim(); //商品名
+            int Price = 0; //単価
+
+            string pPrice = txtPrice.Text.Trim();
+
+            //クラス呼び出し
+            var repo = new Class_ProductDef();
 
             //商品名が入力されていない場合の処理
-            if (string.IsNullOrWhiteSpace(pName))
+            if (!repo.IsValidProductName(pName, out string ErrMsg))
             {
-                //メッセージを表示する
-                MessageBox.Show("商品名が未入力です。", "確認",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                //エラーメッセージを表示する
+                MessageBox.Show($"エラーメッセージ：{ErrMsg}", "確認",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
                 //バックカラー変更
                 txtProductName.BackColor = Color.MistyRose;
                 //商品名のテキストボックスにカーソルを戻す
@@ -131,11 +134,11 @@ namespace InventoryManagementSystem
             }
 
             //商品単価が入力されていない場合の処理
-            if (string.IsNullOrWhiteSpace(txtPrice.Text))
+            if (!repo.IsValidProductPrice(pPrice, out ErrMsg))
             {
-                //メッセージを表示する
-                MessageBox.Show("商品単価が未入力です。", "確認",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                //エラーメッセージを表示する
+                MessageBox.Show($"エラーメッセージ：{ErrMsg}", "確認",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
                 //バックカラー変更
                 txtPrice.BackColor = Color.MistyRose;
                 //商品単価のテキストボックスにカーソルを戻す
@@ -143,15 +146,55 @@ namespace InventoryManagementSystem
                 return;
             }
             //商品単価が数値でない場合の処理
-            if (!int.TryParse(txtPrice.Text, out pPrice))
+            if (!repo.ConvertPrice(pPrice, out ErrMsg, out Price))
             {
-                //メッセージを表示する
-                MessageBox.Show("商品単価が不正な値です。", "確認",
-                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                //エラーメッセージを表示する
+                MessageBox.Show($"エラーメッセージ：{ErrMsg}", "確認",
+                MessageBoxButtons.OK, MessageBoxIcon.Error);
                 //単価のテキストボックスのバックカラーを変更する
                 txtPrice.BackColor = Color.MistyRose;
                 //単価のテキストボックスにカーソルを戻す
                 txtPrice.Focus();
+                return;
+            }
+
+            //テキストボックスのバックカラーを戻す
+            txtProductName.BackColor = SystemColors.Window;
+            txtPrice.BackColor = SystemColors.Window;
+
+            //商品データ更新時の最終チェックを行う
+
+            if (!repo.FinalCheck("データ更新", out ErrMsg))
+            {
+                //エラーメッセージを表示する
+                MessageBox.Show($"エラーメッセージ：{ErrMsg}", "確認", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                //各テキストボックスを初期化する
+                txtReset();
+                return;
+            }
+
+            //商品データを編集＆更新を行う
+            try
+            {
+                //クラスを呼び出す
+                var ProductEdit = new Class_Database_Product();
+                //引数を指定して、商品データの編集及び更新を行う(sql処理)
+                ProductEdit.ProductEdit(pCode, pName, Price, out string Msg);
+
+                //商品データの更新が正常に行われた場合、メッセージを表示する
+                MessageBox.Show($"案内：{Msg}", "確認", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
+            catch (InvalidOperationException ex1)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。", "確認",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            //呼び出し先で発生したエラーを取得する（その他のエラー）
+            catch (Exception ex2)
+            {
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}", "確認", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
@@ -162,42 +205,15 @@ namespace InventoryManagementSystem
             //更新データが見つからなかった場合の処理
             if (selectedData == null)
             {
-                //メッセージを表示する
-                MessageBox.Show("商品データが見つかりませんでした。", "確認",
+                //エラーメッセージを表示する
+                MessageBox.Show("エラーメッセージ：データの更新は完了しましたが、画面表示の更新に失敗しました。画面を開き直してください。", "確認",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
-            //テキストボックスのバックカラーを戻す
-            txtProductName.BackColor = SystemColors.Window;
-            txtPrice.BackColor = SystemColors.Window;
-
-            //商品データを編集＆更新を行う
-            try
-            {
-                //クラスを呼び出す
-                var ProductEdit = new Class_Database_Product();
-                //引数を指定して、商品データの編集及び更新を行う(sql処理)
-                ProductEdit.ProductEdit(pCode, pName, pPrice, out string Msg);
-
-                //商品データの更新が正常に行われた場合、メッセージを表示する
-                MessageBox.Show($"{Msg}");
-            }
-            //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
-            catch (InvalidOperationException ex1)
-            {
-                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
-                return;
-            }
-            //呼び出し先で発生したエラーを取得する（その他のエラー）
-            catch (Exception ex2)
-            {
-                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
-                return;
-            }
             //DataStoreを更新する。
             selectedData.ProductName = pName; //商品名
-            selectedData.Price = pPrice; //単価
+            selectedData.Price = Price; //単価
 
             //表示画面のデータを取得する
             DisplaySet();
@@ -253,13 +269,14 @@ namespace InventoryManagementSystem
             //呼び出し先で発生したエラーを取得する（接続情報の取得エラー）
             catch (InvalidOperationException ex1)
             {
-                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。");
+                MessageBox.Show($"エラーメッセージ：{ex1.Message}{Environment.NewLine}※configファイルの設定を確認してください。", "確認",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             //呼び出し先で発生したエラーを取得する（その他のエラー）
             catch (Exception ex2)
             {
-                MessageBox.Show($"エラーメッセージ：{ex2.Message}");
+                MessageBox.Show($"エラーメッセージ：{ex2.Message}", "確認", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
         }

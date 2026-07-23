@@ -30,7 +30,7 @@ namespace InventoryManagementSystem
         /// <param name="e"></param>
         private void btnClose_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("終了します。", "確認",
+            MessageBox.Show("案内：終了します。", "確認",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
             this.Close();
         }
@@ -175,7 +175,7 @@ namespace InventoryManagementSystem
             if (repo.IsStaffNameCheck(staff))
             {
                 //入力 or　未入力のメッセージを表示
-                var result = MessageBox.Show($"担当者が入力されていません。{Environment.NewLine}" +
+                var result = MessageBox.Show($"案内：担当者が入力されていません。{Environment.NewLine}" +
                     $"未入力として登録しますか？", "確認", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
                 //Yesが選択された場合の処理
@@ -249,7 +249,7 @@ namespace InventoryManagementSystem
             txtReset();
 
             //出庫メッセージを表示
-            MessageBox.Show("出庫しました。", "確認",
+            MessageBox.Show("案内：出庫しました。", "確認",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 

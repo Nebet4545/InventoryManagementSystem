@@ -162,10 +162,10 @@ namespace InventoryManagementSystem
         /// <summary>
         /// 商品データを追加登録し、ProductとInventoryのデータベースを更新する処理
         /// </summary>
-        /// <param name="pCode"></param>
-        /// <param name="pName"></param>
-        /// <param name="pPrice"></param>
-        public void ProductAdd(string pCode, string pName, int pPrice,out string Msg)
+        /// <param name="ProductCode"></param>
+        /// <param name="ProductName"></param>
+        /// <param name="Price"></param>
+        public void ProductAdd(string ProductCode, string ProductName, int Price,out string Msg)
         {
             Msg = ""; //呼び出し元で表示するメッセージを初期化する
 
@@ -207,9 +207,9 @@ namespace InventoryManagementSystem
                             try
                             {
                                 //各項目を登録
-                                cmd.Parameters.AddWithValue("@ProductCode", pCode); //商品コード
-                                cmd.Parameters.AddWithValue("@ProductName", pName); //商品名
-                                cmd.Parameters.AddWithValue("@Price", pPrice); //単価
+                                cmd.Parameters.AddWithValue("@ProductCode", ProductCode); //商品コード
+                                cmd.Parameters.AddWithValue("@ProductName", ProductName); //商品名
+                                cmd.Parameters.AddWithValue("@Price", Price); //単価
 
                                 //取得した自動番号を受け取る
                                 var ProductId = cmd.ExecuteScalar();
@@ -245,7 +245,7 @@ namespace InventoryManagementSystem
         /// <summary>
         /// 商品データを削除する処理
         /// </summary>
-        public void ProductDelete(int foundId, out string Msg)
+        public void ProductDelete(int ProductId, out string Msg)
         {
             Msg = ""; //呼び出し元で表示するメッセージを初期化する
             //データベースに接続
@@ -285,7 +285,7 @@ namespace InventoryManagementSystem
                                 cmd.Transaction = tran;
 
                                 //商品コードを削除する(商品IDで指定)
-                                cmd.Parameters.AddWithValue("@ProductId", foundId);
+                                cmd.Parameters.AddWithValue("@ProductId", ProductId);
                                 cmd.ExecuteNonQuery();
 
                                 //sql文実行(2回目)
@@ -294,7 +294,7 @@ namespace InventoryManagementSystem
                                     //トランザクションを紐づけ
                                     cmd2.Transaction = tran;
                                     //商品IDを削除する
-                                    cmd2.Parameters.AddWithValue("@ProductId", foundId);
+                                    cmd2.Parameters.AddWithValue("@ProductId", ProductId);
                                     cmd2.ExecuteNonQuery();
                                 }
                                 tran.Commit();
@@ -317,11 +317,11 @@ namespace InventoryManagementSystem
         /// <summary>
         /// 商品データを編集し、更新する処理
         /// </summary>
-        /// <param name="pCode"></param>
-        /// <param name="pName"></param>
-        /// <param name="pPrice"></param>
+        /// <param name="ProductCode"></param>
+        /// <param name="ProductName"></param>
+        /// <param name="Price"></param>
         /// <param name="Msg"></param>
-        public void ProductEdit(string pCode,string pName,int pPrice,out string Msg)
+        public void ProductEdit(string ProductCode,string ProductName,int Price,out string Msg)
         {
             Msg = ""; //呼び出し元で表示するメッセージを初期化する
             //sql文記述用
@@ -355,9 +355,9 @@ namespace InventoryManagementSystem
                             try
                             {
                                 //データベースを更新
-                                cmd.Parameters.AddWithValue("@ProductCode", pCode); //商品コード
-                                cmd.Parameters.AddWithValue("@ProductName", pName); //商品名
-                                cmd.Parameters.AddWithValue("@Price", pPrice); //単価
+                                cmd.Parameters.AddWithValue("@ProductCode", ProductCode); //商品コード
+                                cmd.Parameters.AddWithValue("@ProductName", ProductName); //商品名
+                                cmd.Parameters.AddWithValue("@Price", Price); //単価
 
                                 cmd.ExecuteNonQuery();
                                 tran.Commit();

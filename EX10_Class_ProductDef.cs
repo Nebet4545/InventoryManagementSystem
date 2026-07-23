@@ -280,6 +280,66 @@ namespace InventoryManagementSystem
             //当月末尾の値を取得する
             EndDate = Start.AddMonths(1).AddSeconds(-1);
         }
+        /// <summary>
+        /// 登録する商品コードが既に登録されていないかをチェックする関数
+        /// </summary>
+        /// <returns></returns>
+        public bool IsDuplicateProductCode(string ProductCode,out string ErrMsg)
+        {
+            //エラーメッセージの初期化
+            ErrMsg = "";
+
+            // DataStore(Products)に入力した商品コードと同じ商品コードがある場合の処理
+            if (Class_DataStore.Products.Any(cd => cd.ProductCode.Equals(ProductCode, StringComparison.OrdinalIgnoreCase)))
+            {
+                //メッセージを表示する
+                ErrMsg = "この商品コードは既に登録されています。";
+                return false;
+            }
+            return true;
+        }
+        /// <summary>
+        /// 商品データ登録時・商品データ変更時・商品データ削除時の最終チェックを行う関数
+        /// </summary>
+        /// <param name="formCategory"></param>
+        /// <param name="ErrMsg"></param>
+        /// <returns></returns>
+        public bool FinalCheck(string formCategory,out string ErrMsg, string Memo = "")
+        {
+            //エラーメッセージの初期化
+            ErrMsg = "";
+
+            //扱う画面によって処理後のメッセージを分岐させる
+            string ActionName = formCategory switch
+            {
+                "データ登録" => "登録",
+                "データ更新" => "更新",
+                "データ削除" => "削除",
+                _ => formCategory
+            };
+
+            //確認用メッセージを生成する
+            string Message = $"商品データの{ActionName}を行いますか？";
+
+            //Memoがある場合は改行してメッセージに追加する
+            if (!string.IsNullOrWhiteSpace(Memo))
+            {
+                Message += $"{Environment.NewLine}{Memo}";
+            }
+
+            //商品データの登録・変更・削除の最終を行うかをユーザーに選択させる
+            var result = MessageBox.Show($"{Message}", "確認",
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            //いいえが選択された場合の処理
+            if (result == DialogResult.No)
+            {
+                //呼び出し元で表示するエラーメッセージを代入する
+                ErrMsg = "処理を中止しました。";
+                return false;
+            }
+            return true;
+        }
     }
     }
 
